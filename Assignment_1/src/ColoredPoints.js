@@ -55,8 +55,14 @@ function connectVariablesToGLSL(){
     console.log('Failed to get the storage location of u_Size');
     return;
   }
+
 }
 
+const POINT = 0;
+const TRIANGLE = 1;
+const CIRCLE = 2;
+
+let g_selectedType = POINT;
 let g_selecteColor = [1.0, 1.0, 1.0, 1.0];
 let g_selectedSize = 5;
 // Set up actions for HTML UI elements
@@ -64,6 +70,11 @@ function addActionsForHtmlUi(){
   document.getElementById('green').onclick = function() {g_selecteColor = [0.0, 1.0, 0.0, 1.0]; };
   document.getElementById('red').onclick = function() {g_selecteColor = [1.0, 0.0, 0.0, 1.0]; };
   document.getElementById('clearButton').onclick = function() {g_shapesList = []; renderAllShapes(); };
+  document.getElementById('point').onclick = function() {g_selectedType=POINT; };
+  document.getElementById('triangle').onclick = function() {g_selectedType=TRIANGLE; };
+  document.getElementById('circle').onclick = function() {g_selectedType=CIRCLE; };
+
+  document.getElementById('picture').onclick = drawPicture;
 
   document.getElementById('redSlide').addEventListener('mouseup', function() {g_selecteColor[0] = (this.value)/100; } )
   document.getElementById('greenSlide').addEventListener('mouseup', function() {g_selecteColor[1] = (this.value)/100; } )
@@ -105,7 +116,15 @@ function click(ev) {
   // g_points.push([x, y]);
   // g_colors.push(g_selecteColor.slice());
   // g_sizes.push(g_selectedSize);
-  let point = new Point();
+  let point;
+  if (g_selectedType == POINT){
+    point = new Point();
+  } else if (g_selectedType == TRIANGLE) {
+    point = new Triangle();
+  } else {
+    point = new Circle();
+  }
+
   point.position = [x, y];
   point.color = g_selecteColor.slice();
   point.size=g_selectedSize;
@@ -138,4 +157,34 @@ function renderAllShapes(){
   for(var i = 0; i < len; i++) {
     g_shapesList[i].render();
   }
+}
+
+function drawPicture(){
+  const segments = 20;
+  const size = 100;
+  const thickness = 0.2;
+  let rings = [new Ring(), new Ring(), new Ring()];
+
+  rings[0].position = [-0.25, 0.25];
+  rings[0].color = [0.0, 0.0, 1.0, 1.0];
+  rings[0].size = size;
+  rings[0].thickness = thickness;
+  rings[0].segments = segments;
+
+  rings[1].position = [0.25, 0.25];
+  rings[1].color = [0.5, 0.0, 1.0, 1.0];
+  rings[1].size = size;
+  rings[1].thickness = thickness;
+  rings[1].segments = segments;
+
+  rings[2].position = [0.0, -0.25];
+  rings[2].color = [1.0, 0.0, 0.0, 1.0];
+  rings[2].size = size;
+  rings[2].thickness = thickness;
+  rings[2].segments = segments;
+
+  for (let i = 0; i < rings.length; i += 1){
+    rings[i].render();
+  }
+
 }

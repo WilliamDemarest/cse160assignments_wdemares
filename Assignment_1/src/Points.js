@@ -3,7 +3,7 @@ class Point{
       this.type = 'point';
       this.position = [0.0, 0.0, 0.0];
       this.color = [1.0, 1.0, 1.0, 1.0];
-      this.size - 5.0;
+      this.size = 5.0;
     }
   
     render() {
@@ -11,6 +11,9 @@ class Point{
       const rgba = this.color;
       const size = this.size;
   
+      // Quit using the buffer to send the attribute
+      gl.disableVertexAttribArray(a_Position);
+      //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([xy[0], xy[1]]), gl.DYNAMIC_DRAW);
       // Pass the position of a point to a_Position variable
       gl.vertexAttrib3f(a_Position, xy[0], xy[1], 0.0);
       // Pass the color of a point to u_FragColor variable
