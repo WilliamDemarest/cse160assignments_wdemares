@@ -73,8 +73,11 @@ function addActionsForHtmlUi(){
   document.getElementById('point').onclick = function() {g_selectedType=POINT; };
   document.getElementById('triangle').onclick = function() {g_selectedType=TRIANGLE; };
   document.getElementById('circle').onclick = function() {g_selectedType=CIRCLE; };
+  
 
   document.getElementById('picture').onclick = drawPicture;
+  document.getElementById('machineA').onclick = apples_machine;
+  document.getElementById('machineB').onclick = garf_machine;
 
   document.getElementById('redSlide').addEventListener('mouseup', function() {g_selecteColor[0] = (this.value)/100; } )
   document.getElementById('greenSlide').addEventListener('mouseup', function() {g_selecteColor[1] = (this.value)/100; } )

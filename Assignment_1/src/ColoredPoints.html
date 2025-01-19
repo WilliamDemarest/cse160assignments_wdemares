@@ -2,8 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Change a point color</title>
+    <title>paint tool</title>
   </head>
+  <div>
+    <p>
+      William Demarest <br>
+      wdemares@ucsc.edu <br>
+    </p>
+    Notes to grader: <p>
+    - To display the graphic for the first extra task, use the "Draw Picture" button.<p>
+    - For the second, open ended extra task I made a python script that takes a .png image file <br>
+    and generates a javascript file with instructions to recreate the image using the paint tool classes. <br>
+    I used this to make instructions for two images, which can be displayed with the "Machine Picture A" <br>
+    and "Machine Picture B" buttons. One uses the point class and so looks pixelated, and the other uses <br>
+    the circle class to give a dot painting effect. The instruction files, python script, and source images <br>
+    are in the lib folder. <br>
+  </div>
 
   <body onload="main()">
     <canvas id="webgl" width="400" height="400">
@@ -24,6 +38,8 @@
 
     <div>
       <button type="button" id="picture">Draw Picture</button>
+      <button type="button" id="machineA">Machine Picture A</button>
+      <button type="button" id="machineB">Machine Picture B</button>
     </div>
 
     <div>
@@ -39,6 +55,8 @@
     <script src="../lib/webgl-utils.js"></script>
     <script src="../lib/webgl-debug.js"></script>
     <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/garf_machine.js"></script>
+    <script src="../lib/apples_machine.js"></script>
     <script src="vert.js"></script>
     <script src="frag.js"></script>
     <script src="Points.js"></script>
