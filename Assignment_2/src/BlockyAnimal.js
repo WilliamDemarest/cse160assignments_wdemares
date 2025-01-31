@@ -1,0 +1,254 @@
+// ColoredPoint.js (c) 2012 matsuda
+
+// Vertex shader program
+var VSHADER_SOURCE = vert;
+
+// Fragment shader program
+var FSHADER_SOURCE = frag;
+
+// Global Variables
+let canvas;
+let gl;
+let a_Position;
+let u_FragColor;
+let u_ModelMatrix;
+let u_GlobalRotateMatrix;
+
+
+function setupWebGL(){
+  // Retrieve <canvas> element
+  canvas = document.getElementById('webgl');
+
+  // Get the rendering context for WebGL
+  // gl = getWebGLContext(canvas);
+  gl = canvas.getContext("webgl", { preserveDrawingBuffer: true});
+  if (!gl) {
+    console.log('Failed to get the rendering context for WebGL');
+    return;
+  }
+  gl.enable(gl.DEPTH_TEST);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+}
+
+function connectVariablesToGLSL(){
+  // Initialize shaders
+  if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+    console.log('Failed to intialize shaders.');
+    return;
+  }
+
+
+  // // Get the storage location of a_Position
+  a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+  if (a_Position < 0) {
+    console.log('Failed to get the storage location of a_Position');
+    return;
+  }
+
+  // Get the storage location of u_ModelMatrix
+  u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
+  if (!u_ModelMatrix) {
+    console.log('Failed to get the storage location of u_ModelMatrix');
+    return;
+  }
+
+  u_GlobalRotateMatrix = gl.getUniformLocation(gl.program, "u_GlobalRotateMatrix");
+  if (!u_GlobalRotateMatrix) {
+    console.log('Failed to get the storage location of u_GlobalRotateMatrix');
+    return;
+  }
+
+  // Get the storage location of u_FragColor
+  u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+  if (!u_FragColor) {
+    console.log('Failed to get the storage location of u_FragColor');
+    return;
+  }
+
+}
+
+const POINT = 0;
+const TRIANGLE = 1;
+const CIRCLE = 2;
+
+let g_selectedType = POINT;
+let g_selecteColor = [1.0, 1.0, 1.0, 1.0];
+let g_selectedSize = 5;
+let g_globalAngle = [-20, 0, -10];
+let g_lastMouse = [200, 300];
+let g_headAngle = 20;
+// Set up actions for HTML UI elements
+function addActionsForHtmlUi(){
+  document.getElementById('clearButton').onclick = function() {g_shapesList = []; renderAllShapes(); };
+
+  document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
+ 
+  document.getElementById('headAngle').addEventListener('mousemove', function() {g_headAngle = parseInt(this.value); renderScene();} );
+
+  // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
+  document.getElementById('webgl').addEventListener('click', click );
+}
+
+function main() {
+
+  setupWebGL();
+  connectVariablesToGLSL();
+  addActionsForHtmlUi();
+
+  // Register function (event handler) to be called on a mouse press
+  canvas.onmousedown = click;
+  canvas.onmousemove = function(ev) { if(ev.buttons == 1) {click(ev);} };
+
+  // Specify the color for clearing <canvas>
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+  // Clear <canvas>
+  //gl.clear(gl.COLOR_BUFFER_BIT);
+  renderScene();
+}
+
+var g_shapesList = [];
+
+
+function click(ev) {
+  // Extract the event click and return it in WebGL coordinates
+  // const [x, y] = convertCoordinatesEventToGl(ev);
+  const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
+  const y = g_lastMouse[1] - ev.clientY; // y coordinate of a mouse pointer
+
+  g_globalAngle[0] += x;
+  g_globalAngle[1] += y;
+  g_lastMouse = [ev.clientX, ev.clientY];
+  // console.log(x + ", " + g_lastMouse[0] + " - " + ev.clientX);
+  // console.log(g_globalAngle + ", " + y);
+
+
+  renderScene();
+}
+
+// Extract the event click and return it in WebGL coordinates
+function convertCoordinatesEventToGl(ev){
+  var x = ev.clientX; // x coordinate of a mouse pointer
+  var y = ev.clientY; // y coordinate of a mouse pointer
+  var rect = ev.target.getBoundingClientRect();
+
+  x = ((x - rect.left) - canvas.width/2)/(canvas.width/2);
+  y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
+
+  return([x, y]);
+}
+
+// Draw every shape that is supposed to be in the canvas
+function renderScene(){
+  // console.log(g_GlobalAngle);
+  // Clear <canvas>
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  const globalRotMat = new Matrix4().rotate(g_globalAngle[0], 0, 1, 0);
+  globalRotMat.rotate(g_globalAngle[1], 0, 0, 1);
+  globalRotMat.rotate(g_globalAngle[2], 1, 0, 0);
+  // console.log(globalRotMat.elements);
+  gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
+
+  /* var len = g_shapesList.length;
+  for(var i = 0; i < len; i++) {
+    g_shapesList[i].render();
+  } */
+  const rotateAnimal = [-10,-10]
+  const colorAnimal = [.7, 0.7, 0.8, 1.0];
+  const scaleAnimal = 0.5;
+
+  //const cubes = []
+  const body2 = new Cube(); // base body
+  body2.color = colorAnimal;
+  body2.matrix.translate(-0.2, -0.255, -0.025, 1);
+  body2.matrix.scale(0.7*scaleAnimal, 0.6*scaleAnimal, 0.6*scaleAnimal, 1);
+  body2.render();
+
+  const body1 = new Cube();
+  body1.matrix.concat(body2.matrix);
+  body1.color = colorAnimal;
+  body1.matrix.translate(1.0, 0.0, 0.1, 1);
+  body1.matrix.scale(0.6, 0.8, 0.8, 1);
+  body1.render();
+
+  const tailBody = new Cube();
+  tailBody.matrix.concat(body1.matrix);
+  tailBody.color = colorAnimal;
+  tailBody.matrix.translate(1.0, 0.0, 0.1, 1);
+  tailBody.matrix.scale(0.6, 0.5, 0.8, 1);
+  tailBody.render();
+
+  const tailLeft = new Trapezoid(); // tail
+  tailLeft.matrix.concat(tailBody.matrix);
+  tailLeft.color = [0.6, 0.6, 0.7, 1.0];
+  tailLeft.offsetTop = 1.2;
+  tailLeft.offsetBottom = 0.5;
+  tailLeft.matrix.translate(0.9, 0.25, 0.4, 1);
+  tailLeft.matrix.rotate(80, 0, 1, 0);
+  tailLeft.matrix.rotate(90, 1, 0, 0);
+  tailLeft.matrix.scale(0.8, 1.5, 0.25, 1);
+  tailLeft.render();
+
+  const rightLeft = new Trapezoid(); // tail
+  rightLeft.matrix.concat(tailBody.matrix);
+  rightLeft.color = [0.6, 0.6, 0.7, 1.0];
+  rightLeft.offsetTop = 0.5;
+  rightLeft.offsetBottom = 1.2;
+  rightLeft.matrix.translate(2.4, 0.25, 0.35, 1);
+  rightLeft.matrix.rotate(90, 0, 1, 0);
+  rightLeft.matrix.rotate(90, 1, 0, 0);
+  rightLeft.matrix.rotate(170, 0, 0, 1);
+  rightLeft.matrix.scale(0.8, 1.5, 0.25, 1);
+  rightLeft.render();
+
+  const body3 = new Cube(); // forward from here
+  body3.matrix.concat(body2.matrix);
+  body3.color = colorAnimal;
+  body3.matrix.translate(-0.6, 0.0, 0.1, 1);
+  body3.matrix.scale(0.7, 0.8, 0.8, 1);
+  body3.render();
+
+  const leftFin = new Trapezoid();
+  leftFin.matrix.concat(body3.matrix);
+  leftFin.color = [0.6, 0.6, 0.7, 1.0];
+  leftFin.offsetTop = 0.5;
+  leftFin.offsetBottom = 1.2;
+  leftFin.matrix.translate(0.1, 0.15, -0.8, 1);
+  leftFin.matrix.rotate(90, 1, 0, 0);
+  leftFin.matrix.scale(0.6, 0.8, 0.15, 1);
+  leftFin.render()
+
+  const rightFin = new Trapezoid();
+  rightFin.matrix.concat(body3.matrix);
+  rightFin.color = [0.6, 0.6, 0.7, 1.0];
+  rightFin.offsetTop = 1.2;
+  rightFin.offsetBottom = 0.5;
+  rightFin.matrix.translate(0.1, 0.15, 1, 1);
+  rightFin.matrix.rotate(90, 1, 0, 0);
+  rightFin.matrix.scale(0.6, 0.8, 0.15, 1);
+  rightFin.render()
+
+  const head = new Cube();
+  head.matrix.concat(body3.matrix);
+  head.color = colorAnimal;
+  head.matrix.translate(0.2, 0.6, 0.2, 1);
+  head.matrix.rotate(-1*g_headAngle, 0, 0, 1);
+  head.matrix.scale(-0.7, 0.6, 0.6, 1);
+  head.render();
+
+  const leftEye = new Cube();
+  leftEye.color = [0.1, 0.1, 0.0, 1];
+  leftEye.matrix.concat(head.matrix);
+  leftEye.matrix.translate(1.1, 0.5, 0.1, 1);
+  leftEye.matrix.scale(-0.5*scaleAnimal, 0.5*scaleAnimal, 0.5*scaleAnimal, 1);
+  leftEye.render();
+
+  const rightEye = new Cube();
+  rightEye.color = [0.1, 0.1, 0.0, 1];
+  rightEye.matrix.concat(head.matrix);
+  rightEye.matrix.translate(1.1, 0.5, 0.7, 1);
+  rightEye.matrix.scale(-0.5*scaleAnimal, 0.5*scaleAnimal, 0.5*scaleAnimal, 1);
+  rightEye.render();
+}
