@@ -8,8 +8,6 @@
     <p>
       William Demarest <br>
       wdemares@ucsc.edu <br>
-    </p>
-    Notes to grader: <p>
   </div>
 
   <body onload="main()">
@@ -26,7 +24,7 @@
 
     <div>
       Camera Angle: <input type="range" min="-180" max="180" value="-20" class="slider" id="angleSlide">
-
+      Animation Speed: <input type="range" min="-250" max="-10" value="-100" class="slider" id="speed">
     </div>
 
     <div>
@@ -34,6 +32,22 @@
       First Tail Angle: <input type="range" min="-20" max="20" value="0" class="slider" id="tailAngle1">
       Second Tail Angle: <input type="range" min="-20" max="20" value="0" class="slider" id="tailAngle2">
       Third Tail Angle: <input type="range" min="-20" max="20" value="0" class="slider" id="tailAngle3">
+    </div>
+
+    <div>
+    </p>
+      Notes to grader: <br>
+      - Shift-click Animation only plays when main animation is also running. <br>
+      - This runs very smooth on my desktop, but may be worse on a smaller laptop. <br>
+      If the default animation speed ends up slow or chopy, increasing the speed using <br>
+      the "Animation Speed" slider may improve it. <br>
+      - Rotation by clicking and dragging on the canvas is enabled in two axis. <br>
+      - The Third level join is the segmented tail. The sliders will not work while the main animation is running. <br>
+      - The non-cube primative is a trapazoid I used for all the fins <br>
+      - This animal is a seal. <br>
+      - The shift click-animation is based on <a href="https://www.youtube.com/watch?v=xkABKc0QOaI" target="_blank">this video.</a> <br>
+      No collaborators.
+    <p>
     </div>
 
     <script src="../lib/webgl-utils.js"></script>

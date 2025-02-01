@@ -24,18 +24,19 @@ class Triangle{
 }
 
 
-function drawTriangle(vertices) {
+function drawTriangle(vertices, buffer) {
   // var vertices = new Float32Array([
   //   0, 0.5,   -0.5, -0.5,   0.5, -0.5
   // ]);
   var n = 3; // The number of vertices
 
   // Create a buffer object
-  var vertexBuffer = gl.createBuffer();
+  /*var vertexBuffer = gl.createBuffer();
   if (!vertexBuffer) {
     console.log('Failed to create the buffer object');
     return -1;
-  }
+  }*/
+  var vertexBuffer = buffer;
 
   // Bind the buffer object to target
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);

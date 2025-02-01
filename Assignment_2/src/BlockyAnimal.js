@@ -82,13 +82,17 @@ let g_headAngle = 20;
 let g_tailAngle = [0, 0, 0];
 let g_time = 0;
 let g_animation = false;
+let g_headAnimation = false;
+let g_headAnimationStart = 0;
+let g_animationSpeed = 100;
 // Set up actions for HTML UI elements
 function addActionsForHtmlUi(){
   document.getElementById('start').onclick = function() {g_animation = true; start_animation(); };
   document.getElementById('stop').onclick = function() {g_animation = false; };
 
   document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
- 
+  document.getElementById('speed').addEventListener('mousemove', function() {g_animationSpeed = -1*parseInt(this.value);} )
+
   document.getElementById('headAngle').addEventListener('mousemove', function() {g_headAngle = parseInt(this.value); renderScene();} );
   document.getElementById('tailAngle1').addEventListener('mousemove', function() {g_tailAngle[0] = parseInt(this.value); renderScene();} );
   document.getElementById('tailAngle2').addEventListener('mousemove', function() {g_tailAngle[1] = parseInt(this.value); renderScene();} );
@@ -127,6 +131,10 @@ function track(ev) {
 }
 
 function click(ev) {
+  if (g_animation == true && ev.shiftKey && g_headAnimation == false) {
+    g_headAnimation = true;
+    g_headAnimationStart = performance.now();
+  }
   // Extract the event click and return it in WebGL coordinates
   // const [x, y] = convertCoordinatesEventToGl(ev);
   const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
@@ -160,6 +168,9 @@ function start_animation(){
 
 function tick(){
   g_time = performance.now();
+  if (g_headAnimation == true && (g_time - g_headAnimationStart) > (10*g_animationSpeed)) {
+    g_headAnimation = false;
+  }
   renderScene();
   if (g_animation) {
     requestAnimationFrame(tick);
@@ -172,8 +183,15 @@ function renderScene(){
 
   if (g_animation){
     for (let i = 0; i < 3; i += 1){
-      g_tailAngle[i] = 10*Math.sin((g_time/100) - (i*45));
+      g_tailAngle[i] = 10*Math.sin((g_time/g_animationSpeed) - (i*45));
     }
+  }
+
+  let headOffset = 0;
+  if (g_headAnimation) {
+    headOffset = (-1/(g_animationSpeed*10))*((g_time - g_headAnimationStart)**2) + (g_time - g_headAnimationStart);
+    headOffset = headOffset / (7*g_animationSpeed);
+    //console.log(headOffset);
   }
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -233,7 +251,7 @@ function renderScene(){
   const body3 = new Cube(); // forward from here
   body3.matrix.concat(body2.matrix);
   body3.color = colorAnimal;
-  body3.matrix.translate(-0.6, 0.0, 0.1, 1);
+  body3.matrix.translate(-0.6+headOffset, 0.0, 0.1, 1);
   body3.matrix.scale(0.7, 0.8, 0.8, 1);
   body3.render();
 
@@ -262,7 +280,7 @@ function renderScene(){
   const head = new Cube();
   head.matrix.concat(body3.matrix);
   head.color = colorAnimal;
-  head.matrix.translate(0.2, 0.6, 0.2, 1);
+  head.matrix.translate(0.2+headOffset, 0.6-(0.5*headOffset), 0.2, 1);
   head.matrix.rotate(-1*g_headAngle, 0, 0, 1);
   head.matrix.scale(-0.7, 0.6, 0.6, 1);
   head.render();
@@ -280,6 +298,13 @@ function renderScene(){
   rightEye.matrix.translate(1.1, 0.5, 0.7, 1);
   rightEye.matrix.scale(-0.5*scaleAnimal, 0.5*scaleAnimal, 0.5*scaleAnimal, 1);
   rightEye.render();
+
+  const nose = new Cube();
+  nose.color = [0.6, 0.6, 0.7, 1];
+  nose.matrix.concat(head.matrix);
+  nose.matrix.translate(1.0, 0.1, 0.25, 1);
+  nose.matrix.scale(0.15, 0.3, 0.5, 1);
+  nose.render();
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 10000/frame;
