@@ -305,7 +305,7 @@ function renderScene(){
   nose.matrix.scale(0.15, 0.3, 0.5, 1);
   nose.render();
 
-  //drawCube(new Matrix4(), [1, 0, 0, 1]);
+  drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 10000/frame;

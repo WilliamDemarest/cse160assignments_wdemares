@@ -59,7 +59,7 @@ class Cube{
 function drawCube(M, rgba) {
 
   vertexBuffer = gl.createBuffer();
-  if (vertexBuffer) {
+  if (!vertexBuffer) {
     console.log('Failed to create the buffer object');
   }
 
