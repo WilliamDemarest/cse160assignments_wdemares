@@ -150,7 +150,7 @@ function click(ev) {
 }
 
 // Extract the event click and return it in WebGL coordinates
-function convertCoordinatesEventToGl(ev){
+/*function convertCoordinatesEventToGl(ev){
   var x = ev.clientX; // x coordinate of a mouse pointer
   var y = ev.clientY; // y coordinate of a mouse pointer
   var rect = ev.target.getBoundingClientRect();
@@ -159,10 +159,9 @@ function convertCoordinatesEventToGl(ev){
   y = (canvas.height/2 - (y - rect.top))/(canvas.height/2);
 
   return([x, y]);
-}
+}*/
 
 function start_animation(){
-  const start_time = performance.now();
   tick();
 }
 
@@ -305,6 +304,8 @@ function renderScene(){
   nose.matrix.translate(1.0, 0.1, 0.25, 1);
   nose.matrix.scale(0.15, 0.3, 0.5, 1);
   nose.render();
+
+  //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 10000/frame;

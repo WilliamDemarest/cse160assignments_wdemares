@@ -36,7 +36,16 @@ function drawTriangle(vertices, buffer) {
     console.log('Failed to create the buffer object');
     return -1;
   }*/
-  var vertexBuffer = buffer;
+  var vertexBuffer = null;
+  if(buffer) {
+    vertexBuffer = buffer;
+  } else {
+    vertexBuffer = gl.createBuffer();
+    if (!vertexBuffer) {
+      console.log('Failed to create the buffer object');
+      return -1;
+    }
+  }
 
   // Bind the buffer object to target
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);

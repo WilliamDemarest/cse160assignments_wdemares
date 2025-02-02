@@ -54,3 +54,36 @@ class Cube{
 
   }
 }
+
+
+function drawCube(M, rgba) {
+
+  vertexBuffer = gl.createBuffer();
+  if (vertexBuffer) {
+    console.log('Failed to create the buffer object');
+  }
+
+  gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
+    
+  gl.uniformMatrix4fv(u_ModelMatrix, false, M.elements);
+
+  drawTriangle3D( [0.0,0.0,1.0, 1.0,1.0,1.0, 1.0,0.0,1.0], vertexBuffer); // back
+  drawTriangle3D( [0.0,0.0,1.0, 0.0,1.0,1.0, 1.0,1.0,1.0], vertexBuffer);
+
+  drawTriangle3D( [0.0,0.0,0.0, 1.0,0.0,1.0, 1.0,0.0,0.0], vertexBuffer); // bottom
+  drawTriangle3D( [0.0,0.0,0.0, 0.0,0.0,1.0, 1.0,0.0,1.0,], vertexBuffer); 
+
+
+  drawTriangle3D( [0.0,0.0,0.0, 0.0,1.0,1.0, 0.0,0.0,1.0], vertexBuffer); // left side
+  drawTriangle3D( [0.0,0.0,0.0, 0.0,1.0,0.0, 0.0,1.0,1.0], vertexBuffer);
+
+  drawTriangle3D( [1.0,0.0,0.0, 1.0,1.0,1.0, 1.0,0.0,1.0], vertexBuffer); //right side
+  drawTriangle3D( [1.0,0.0,0.0, 1.0,1.0,0.0, 1.0,1.0,1.0], vertexBuffer);
+
+  drawTriangle3D( [0.0,0.0,0.0, 1.0,1.0,0.0, 1.0,0.0,0.0], vertexBuffer); // front
+  drawTriangle3D( [0.0,0.0,0.0, 0.0,1.0,0.0, 1.0,1.0,0.0], vertexBuffer); 
+
+  drawTriangle3D( [0.0,1.0,0.0, 1.0,1.0,1.0, 1.0,1.0,0.0], vertexBuffer); // top
+  drawTriangle3D( [0.0,1.0,0.0, 0.0,1.0,1.0, 1.0,1.0,1.0,], vertexBuffer);
+
+}
