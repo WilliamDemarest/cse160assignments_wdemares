@@ -308,5 +308,5 @@ function renderScene(){
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
-  fps_display.textContent = "fps: " + 10000/frame;
+  fps_display.textContent = "fps: " + 1000/frame;
 }
