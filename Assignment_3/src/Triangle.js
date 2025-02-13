@@ -141,3 +141,50 @@ function drawTriangle3DUV(vertices, uv) {
 
   return n;
 }
+
+
+let t_triangleBuffer = null;
+
+function init_triangleBuffer(FSIZE){
+  var t_triangleBuffer = gl.createBuffer();
+  if (!t_triangleBuffer) {
+    console.log('Failed to create the buffer object');
+    return -1;
+  }
+  // Bind the buffer object to target
+  gl.bindBuffer(gl.ARRAY_BUFFER, t_triangleBuffer);
+
+  // Assign the buffer object to a_Position variable
+  gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE*5, 0);
+
+  // Enable the assignment to a_Position variable
+  gl.enableVertexAttribArray(a_Position);
+
+  // Assign the buffer object to a_Position variable
+  gl.vertexAttribPointer(a_UV, 2, gl.FLOAT, false, FSIZE*5, FSIZE*3);
+
+  // Enable the assignment to a_Position variable
+  gl.enableVertexAttribArray(a_UV);
+}
+
+
+
+
+function drawAllTriangle3DUV(data) {
+
+  let vertices = new Float32Array(data);
+  FSIZE = vertices.BYTES_PER_ELEMENT;
+
+  var n = 5; // The number of data in vertex
+
+  if (t_triangleBuffer == null){
+    init_triangleBuffer(FSIZE);
+  }
+
+  // Write date into the buffer object
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+
+  gl.drawArrays(gl.TRIANGLES, 0, vertices.length / n);
+
+  return n;
+}

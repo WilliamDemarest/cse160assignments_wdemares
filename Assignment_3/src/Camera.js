@@ -95,13 +95,13 @@ class Camera {
         this.updateLook();
     }
 
-    panLeft() {
+    panLeft(alpha = this.speed) {
         const f =  new Vector3();
         f.set(this.at);
         f.sub(this.eye);
         f.normalize();
 
-        const m = new Matrix4().setRotate(this.speed*-30, 
+        const m = new Matrix4().setRotate(alpha*-30, 
             this.up.elements[0],
             this.up.elements[1],
             this.up.elements[2],
@@ -115,13 +115,13 @@ class Camera {
         this.updateLook();
     }
 
-    panRight() {
+    panRight(alpha = this.speed) {
         const f =  new Vector3();
         f.set(this.at);
         f.sub(this.eye);
         f.normalize();
 
-        const m = new Matrix4().setRotate(this.speed*30, 
+        const m = new Matrix4().setRotate(alpha*30, 
             this.up.elements[0],
             this.up.elements[1],
             this.up.elements[2],

@@ -17,7 +17,8 @@ let u_GlobalRotateMatrix;
 let u_ViewMatrix;
 let u_ProjectionMatrix;
 let u_Sampler0;
-let u_ColorWeight;
+let u_Sampler = new Array(2);
+let u_ColorWeight = new Array(2);
 const fps_display = document.getElementById("fps");
 
 
@@ -90,15 +91,27 @@ function connectVariablesToGLSL(){
     return;
   }
 
-  u_Sampler0 = gl.getUniformLocation(gl.program, 'u_Sampler0');
-  if (!u_Sampler0) {
+  u_Sampler[0] = gl.getUniformLocation(gl.program, 'u_Sampler0');
+  if (!u_Sampler[0]) {
     console.log('Failed to get the storage location of u_Sampler0');
     return false;
   }
 
-  u_ColorWeight = gl.getUniformLocation(gl.program, 'u_ColorWeight');
-  if (!u_Sampler0) {
-    console.log('Failed to get the storage location of u_ColorWeight');
+  u_ColorWeight[0] = gl.getUniformLocation(gl.program, 'u_ColorWeight0');
+  if (!u_ColorWeight[0]) {
+    console.log('Failed to get the storage location of u_ColorWeight0');
+    return false;
+  }
+
+  u_Sampler[1] = gl.getUniformLocation(gl.program, 'u_Sampler1');
+  if (!u_Sampler[1]) {
+    console.log('Failed to get the storage location of u_Sampler1');
+    return false;
+  }
+
+  u_ColorWeight[1] = gl.getUniformLocation(gl.program, 'u_ColorWeight1');
+  if (!u_ColorWeight[1]) {
+    console.log('Failed to get the storage location of u_ColorWeight1');
     return false;
   }
 
@@ -107,20 +120,31 @@ function connectVariablesToGLSL(){
 function initTextures() {
 
   // Get the storage location of u_Sampler
-  var image = new Image();  // Create the image object
-  if (!image) {
-    console.log('Failed to create the image object');
+  var image1 = new Image();  // Create the image object
+  if (!image1) {
+    console.log('Failed to create the image1 object');
     return false;
   }
   // Register the event handler to be called on loading an image
-  image.onload = function(){ sendTextureToGLSL(image, u_Sampler0, gl.TEXTURE0); };
+  image1.onload = function(){ sendTextureToGLSL(image1, u_Sampler[0], gl.TEXTURE0, 0); };
   // Tell the browser to load an image
-  image.src = '../resources/sky.jpg';
+  image1.src = '../resources/BadLightArmor.png';
+
+
+  var image2 = new Image();  // Create the image object
+  if (!image2) {
+    console.log('Failed to create the image2 object');
+    return false;
+  }
+  // Register the event handler to be called on loading an image
+  image2.onload = function(){ sendTextureToGLSL(image2, u_Sampler[1], gl.TEXTURE1, 1); };
+  // Tell the browser to load an image
+  image2.src = '../resources/SillySkyDay.png';
 
   return true;
 }
 
-function sendTextureToGLSL(image, sampler, texture_slot) {
+function sendTextureToGLSL(image, sampler, texture_slot, slot) {
   var texture = gl.createTexture();   // Create a texture object
   if (!texture) {
     console.log('Failed to create the texture object');
@@ -139,7 +163,7 @@ function sendTextureToGLSL(image, sampler, texture_slot) {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
   
   // Set the texture unit 0 to the sampler
-  gl.uniform1i(sampler, 0);
+  gl.uniform1i(sampler, slot);
   
   //gl.clear(gl.COLOR_BUFFER_BIT);   // Clear <canvas>
 
@@ -153,7 +177,7 @@ const CIRCLE = 2;
 let g_selectedType = POINT;
 let g_selecteColor = [1.0, 1.0, 1.0, 1.0];
 let g_selectedSize = 5;
-let g_globalAngle = [-20, 0, -10];
+let g_globalAngle = [0, 0, 0];
 let g_lastMouse = [200, 300];
 let g_headAngle = 20;
 let g_tailAngle = [0, 0, 0];
@@ -170,11 +194,7 @@ function addActionsForHtmlUi(){
   document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
   document.getElementById('speed').addEventListener('mousemove', function() {g_animationSpeed = -1*parseInt(this.value);} )
 
-  document.getElementById('headAngle').addEventListener('mousemove', function() {g_headAngle = parseInt(this.value); renderScene();} );
-  document.getElementById('tailAngle1').addEventListener('mousemove', function() {g_tailAngle[0] = parseInt(this.value); renderScene();} );
-  document.getElementById('tailAngle2').addEventListener('mousemove', function() {g_tailAngle[1] = parseInt(this.value); renderScene();} );
-  document.getElementById('tailAngle3').addEventListener('mousemove', function() {g_tailAngle[2] = parseInt(this.value); renderScene();} );
-
+  
   // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
   document.getElementById('webgl').addEventListener('mousedown', click );
   document.getElementById('webgl').addEventListener('mousemove', track );
@@ -196,8 +216,8 @@ function main() {
   document.onkeyup = keyup;
 
   g_camera = new Camera(canvas);
-  g_camera.eye.elements = [0, 0, 3];
-  g_camera.at.elements = [0, 0, -100];
+  g_camera.eye.elements = [0, 4, 3];
+  g_camera.at.elements = [0, 4, -100];
   g_camera.up.elements = [0, 1, 0];
   g_camera.updateLook();
 
@@ -212,11 +232,21 @@ function main() {
 
 var g_shapesList = [];
 
+// function track(ev) {
+//   if(ev.buttons == 0){
+//     g_lastMouse = [ev.clientX, ev.clientY];
+//     //console.log(g_lastMouse);
+//   }
+// }
+
 function track(ev) {
-  if(ev.buttons == 0){
-    g_lastMouse = [ev.clientX, ev.clientY];
-    //console.log(g_lastMouse);
+  //const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
+  let x = 0;
+  if ((ev.clientX > 5 && ev.clientX < 280) || (ev.clientX > 320 && ev.clientX < 600)) {
+    x = (ev.clientX - 300) / 3000;
   }
+
+  g_lastMouse = [x, ev.clientY];
 }
 
 function keydown(ev){
@@ -248,10 +278,6 @@ function move(){
 }
 
 function click(ev) {
-  if (g_animation == true && ev.shiftKey && g_headAnimation == false) {
-    g_headAnimation = true;
-    g_headAnimationStart = performance.now();
-  }
   // Extract the event click and return it in WebGL coordinates
   // const [x, y] = convertCoordinatesEventToGl(ev);
   const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
@@ -284,6 +310,8 @@ function start_animation(){
 
 function tick(){
   g_time = performance.now();
+
+  g_camera.panLeft(g_lastMouse[0]);
   move();
   renderScene();
   if (g_animation) {
@@ -315,13 +343,35 @@ function renderScene(){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const globalRotMat = new Matrix4().rotate(g_globalAngle[0], 0, 1, 0);
-  globalRotMat.rotate(g_globalAngle[1], 0, 0, 1);
-  globalRotMat.rotate(g_globalAngle[2], 1, 0, 0);
+  //globalRotMat.rotate(g_globalAngle[1], 0, 0, 1);
+  //globalRotMat.rotate(g_globalAngle[2], 1, 0, 0);
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
 
   const sky = new Cube();
-  //sky.matrix.rotate(45, 1, 0, 0)
+  sky.colorWeights[0] = 0;
+  sky.colorWeights[1] = 0;
+  sky.matrix.translate(-25, -3, -25);
+  sky.matrix.scale(50, 50, 50);
   sky.render();
+
+  const ground = new Cube();
+  ground.colorWeights[0] = 1.0;
+  ground.color = [0.15, 0.55, 0.235, 1];
+  ground.matrix.translate(-16, 0, -16);
+  ground.matrix.scale(32, 1, 32);
+  ground.render();
+
+  const body = new Cube();
+  body.colorWeights[0] = 0;
+  body.colorWeights[1] = 1;
+  for (let x = 0; x < 32; x += 1) {
+    for (let z = 0; z < 32; z += 1) {
+      if (map_array[x][z] > 0) {
+        body.matrix.setTranslate(x-16, map_array[x][z], z-16);
+        body.fastRender();
+      }
+    }
+  }
 
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
