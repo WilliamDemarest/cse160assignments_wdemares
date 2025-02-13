@@ -117,6 +117,7 @@ class Cube{
     }
     const rgba = this.color;
 
+
     // Pass the position of a point to a_Position variable
     gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
     gl.uniform1f(u_ColorWeight[0], 1.0 - this.colorWeights[0]);

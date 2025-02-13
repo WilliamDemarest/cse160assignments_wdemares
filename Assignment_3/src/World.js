@@ -35,6 +35,8 @@ function setupWebGL(){
   }
   gl.enable(gl.DEPTH_TEST);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 }
 
@@ -178,7 +180,7 @@ let g_selectedType = POINT;
 let g_selecteColor = [1.0, 1.0, 1.0, 1.0];
 let g_selectedSize = 5;
 let g_globalAngle = [0, 0, 0];
-let g_lastMouse = [200, 300];
+let g_lastMouse = [0, 0];
 let g_headAngle = 20;
 let g_tailAngle = [0, 0, 0];
 let g_time = 0;
@@ -242,11 +244,18 @@ var g_shapesList = [];
 function track(ev) {
   //const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
   let x = 0;
-  if ((ev.clientX > 5 && ev.clientX < 280) || (ev.clientX > 320 && ev.clientX < 600)) {
-    x = (ev.clientX - 300) / 3000;
+  let y = 0;
+  if (ev.clientX < 600 && ev.clientY < 660 && ev.clientX > 5 && ev.clientY > 69) {
+    if (ev.clientX < 280 || ev.clientX > 320) {
+      x = (ev.clientX - 300) / 3000;
+    }
+
+    if (ev.clientY < 349 || ev.clientY > 389) {
+      y = (ev.clientY - 369) / 3000;
+    }
   }
 
-  g_lastMouse = [x, ev.clientY];
+  g_lastMouse = [x, y];
 }
 
 function keydown(ev){
@@ -270,10 +279,10 @@ function move(){
     g_camera.moveRight();
   } 
   if (g_keyStates[81]) {
-    g_camera.panLeft();
+    g_camera.rotateClock(-1);
   } 
   if (g_keyStates[69]) {
-    g_camera.panRight();
+    g_camera.rotateClock(1);
   }
 }
 
@@ -312,6 +321,7 @@ function tick(){
   g_time = performance.now();
 
   g_camera.panLeft(g_lastMouse[0]);
+  g_camera.panUp(g_lastMouse[1]);
   move();
   renderScene();
   if (g_animation) {
@@ -354,24 +364,24 @@ function renderScene(){
   sky.matrix.scale(50, 50, 50);
   sky.render();
 
+  const body = new Cube();
+  body.colorWeights[0] = 1;
+  body.colorWeights[1] = 0;
+  for (let x = 0; x < 32; x += 1) {
+    for (let z = 0; z < 32; z += 1) {
+      body.color = map_color[map_array[x][z]];
+      body.matrix.setTranslate(x-16, 1, z-16);
+      body.matrix.scale(1, map_array[x][z]+1, 1);
+      body.fastRender();
+    }
+  }
+
   const ground = new Cube();
   ground.colorWeights[0] = 1.0;
   ground.color = [0.15, 0.55, 0.235, 1];
   ground.matrix.translate(-16, 0, -16);
   ground.matrix.scale(32, 1, 32);
   ground.render();
-
-  const body = new Cube();
-  body.colorWeights[0] = 0;
-  body.colorWeights[1] = 1;
-  for (let x = 0; x < 32; x += 1) {
-    for (let z = 0; z < 32; z += 1) {
-      if (map_array[x][z] > 0) {
-        body.matrix.setTranslate(x-16, map_array[x][z], z-16);
-        body.fastRender();
-      }
-    }
-  }
 
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 

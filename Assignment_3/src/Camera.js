@@ -69,7 +69,7 @@ class Camera {
         const s_prime = Vector3.cross(s, f);
         
         s_prime.normalize();
-        s_prime.mul(this.speed*-1);
+        s_prime.mul(this.speed*1);
 
         this.eye.add(s_prime);
         this.at.add(s_prime);
@@ -87,7 +87,7 @@ class Camera {
         const s_prime = Vector3.cross(s, f);
         
         s_prime.normalize();
-        s_prime.mul(this.speed*-1);
+        s_prime.mul(this.speed*1);
 
         this.eye.add(s_prime);
         this.at.add(s_prime);
@@ -131,6 +131,52 @@ class Camera {
 
         this.at.set(this.eye);
         this.at.add(f_prime);
+
+        this.updateLook();
+    }
+
+    panUp(alpha = this.speed) {
+        const f =  new Vector3();
+        f.set(this.at);
+        f.sub(this.eye);
+        f.normalize();
+
+
+        const s_prime = Vector3.cross(this.up, f);
+        s_prime.normalize();
+
+        const m = new Matrix4().setRotate(alpha*30, 
+            s_prime.elements[0],
+            s_prime.elements[1],
+            s_prime.elements[2],
+        );
+
+        const f_prime = m.multiplyVector3(f);
+
+        this.at.set(this.eye);
+        this.at.add(f_prime);
+        this.up.set(m.multiplyVector3(this.up))
+
+        this.updateLook();
+    }
+
+    rotateClock(alpha = this.speed) {
+        const f = new Vector3();
+        f.set(this.at);
+        f.sub(this.eye);
+        f.normalize();
+
+        const m = new Matrix4().setRotate(alpha, 
+            f.elements[0],
+            f.elements[1],
+            f.elements[2],
+        );
+
+        const up_prime = m.multiplyVector3(this.up);
+
+
+        //this.up.set(this.eye);
+        this.up.set(up_prime);
 
         this.updateLook();
     }
