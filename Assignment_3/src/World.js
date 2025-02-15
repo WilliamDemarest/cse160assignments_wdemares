@@ -39,7 +39,7 @@ function setupWebGL(){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  //gl.enable(gl.CULL_FACE);
+  gl.enable(gl.CULL_FACE);
   //gl.cullFace(gl.BACK);
 
 }
@@ -284,6 +284,7 @@ function addActionsForHtmlUi(){
   // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
   document.getElementById('webgl').addEventListener('mousedown', click );
   document.getElementById('webgl').addEventListener('mousemove', track );
+  document.getElementById('webgl').onmouseout = function() {g_lastMouse = [0, 0];};
 }
 
 
@@ -302,8 +303,8 @@ function main() {
   document.onkeyup = keyup;
 
   g_camera = new Camera(canvas);
-  g_camera.eye.elements = [0, 4, 3];
-  g_camera.at.elements = [0, 4, -100];
+  g_camera.eye.elements = [0, 7, 3];
+  g_camera.at.elements = [0, 7, -100];
   g_camera.up.elements = [0, 1, 0];
   g_camera.updateLook();
 
@@ -433,6 +434,7 @@ function renderScene(){
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
   gl.uniform3f(u_dayShade, 1, 1, 1);
 
+  gl.disable(gl.CULL_FACE);
   const sky = new Cube();
   sky.colorWeights[0] = 0;
   sky.colorWeights[3] = 1;
@@ -440,6 +442,7 @@ function renderScene(){
   sky.matrix.translate(-25, -3, -25);
   sky.matrix.scale(50, 50, 50);
   sky.fastRender();
+  gl.enable(gl.CULL_FACE);
 
   //console.log(g_day_shades[g_daytime]);
 
@@ -513,6 +516,9 @@ function renderScene(){
     ground.fastRender();
   }
 
+  const cube = new Cube();
+  cube.matrix.translate(0, 10, 10);
+  cube.fastRender();
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
