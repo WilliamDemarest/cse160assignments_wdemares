@@ -17,9 +17,11 @@ let u_GlobalRotateMatrix;
 let u_ViewMatrix;
 let u_ProjectionMatrix;
 let u_Sampler0;
-let u_Sampler = new Array(2);
-let u_ColorWeight = new Array(2);
+let u_dayShade;
+let u_Sampler = new Array(5);
+let u_ColorWeight = new Array(5);
 const fps_display = document.getElementById("fps");
+const blocks_display = document.getElementById("blocks");
 
 
 function setupWebGL(){
@@ -37,6 +39,8 @@ function setupWebGL(){
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  //gl.enable(gl.CULL_FACE);
+  //gl.cullFace(gl.BACK);
 
 }
 
@@ -93,6 +97,12 @@ function connectVariablesToGLSL(){
     return;
   }
 
+  u_dayShade = gl.getUniformLocation(gl.program, 'u_dayShade');
+  if (!u_dayShade) {
+    console.log('Failed to get the storage location of u_dayShade');
+    return false;
+  }
+
   u_Sampler[0] = gl.getUniformLocation(gl.program, 'u_Sampler0');
   if (!u_Sampler[0]) {
     console.log('Failed to get the storage location of u_Sampler0');
@@ -114,6 +124,42 @@ function connectVariablesToGLSL(){
   u_ColorWeight[1] = gl.getUniformLocation(gl.program, 'u_ColorWeight1');
   if (!u_ColorWeight[1]) {
     console.log('Failed to get the storage location of u_ColorWeight1');
+    return false;
+  }
+
+  u_Sampler[2] = gl.getUniformLocation(gl.program, 'u_Sampler2');
+  if (!u_Sampler[2]) {
+    console.log('Failed to get the storage location of u_Sampler2');
+    return false;
+  }
+
+  u_ColorWeight[2] = gl.getUniformLocation(gl.program, 'u_ColorWeight2');
+  if (!u_ColorWeight[2]) {
+    console.log('Failed to get the storage location of u_ColorWeight2');
+    return false;
+  }
+
+  u_Sampler[3] = gl.getUniformLocation(gl.program, 'u_Sampler3');
+  if (!u_Sampler[3]) {
+    console.log('Failed to get the storage location of u_Sampler3');
+    return false;
+  }
+
+  u_ColorWeight[3] = gl.getUniformLocation(gl.program, 'u_ColorWeight3');
+  if (!u_ColorWeight[3]) {
+    console.log('Failed to get the storage location of u_ColorWeight3');
+    return false;
+  }
+
+  u_Sampler[4] = gl.getUniformLocation(gl.program, 'u_Sampler4');
+  if (!u_Sampler[4]) {
+    console.log('Failed to get the storage location of u_Sampler4');
+    return false;
+  }
+
+  u_ColorWeight[4] = gl.getUniformLocation(gl.program, 'u_ColorWeight4');
+  if (!u_ColorWeight[4]) {
+    console.log('Failed to get the storage location of u_ColorWeight4');
     return false;
   }
 
@@ -142,6 +188,37 @@ function initTextures() {
   image2.onload = function(){ sendTextureToGLSL(image2, u_Sampler[1], gl.TEXTURE1, 1); };
   // Tell the browser to load an image
   image2.src = '../resources/SillySkyDay.png';
+
+  var image3 = new Image();  // Create the image object
+  if (!image3) {
+    console.log('Failed to create the image3 object');
+    return false;
+  }
+  // Register the event handler to be called on loading an image
+  image3.onload = function(){ sendTextureToGLSL(image3, u_Sampler[2], gl.TEXTURE2, 2); };
+  // Tell the browser to load an image
+  image3.src = '../resources/grass2.png';
+
+  var image4 = new Image();  // Create the image object
+  if (!image4) {
+    console.log('Failed to create the image4 object');
+    return false;
+  }
+  // Register the event handler to be called on loading an image
+  image4.onload = function(){ sendTextureToGLSL(image4, u_Sampler[3], gl.TEXTURE3, 3); };
+  // Tell the browser to load an image
+  image4.src = '../resources/grass.png';
+
+
+  var image5 = new Image();  // Create the image object
+  if (!image5) {
+    console.log('Failed to create the image5 object');
+    return false;
+  }
+  // Register the event handler to be called on loading an image
+  image5.onload = function(){ sendTextureToGLSL(image5, u_Sampler[4], gl.TEXTURE4, 4); };
+  // Tell the browser to load an image
+  image5.src = '../resources/nightSky.png';
 
   return true;
 }
@@ -184,17 +261,20 @@ let g_lastMouse = [0, 0];
 let g_headAngle = 20;
 let g_tailAngle = [0, 0, 0];
 let g_time = 0;
+let g_daytime = 499;
 let g_animation = true;
 let g_animationSpeed = 100;
-const g_keyStates = new Array(100).fill(false);
+const g_keyStates = new Array(500).fill(false);
 let g_camera;
+const g_water_color = [0.15, 0.15, 0.8, 1];
+let g_day_shades = new Array(720);
 // Set up actions for HTML UI elements
 function addActionsForHtmlUi(){
   document.getElementById('start').onclick = function() {g_animation = true; start_animation(); };
   document.getElementById('stop').onclick = function() {g_animation = false; };
 
   document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
-  document.getElementById('speed').addEventListener('mousemove', function() {g_animationSpeed = -1*parseInt(this.value);} )
+  document.getElementById('time').addEventListener('mousemove', function() {g_daytime = parseInt(this.value);} )
 
   
   // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
@@ -222,6 +302,9 @@ function main() {
   g_camera.at.elements = [0, 4, -100];
   g_camera.up.elements = [0, 1, 0];
   g_camera.updateLook();
+
+  populate_times();
+
 
   // Specify the color for clearing <canvas>
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -332,19 +415,7 @@ function tick(){
 // Draw every shape that is supposed to be in the canvas
 function renderScene(){
   const now = performance.now();
-
-  /*if (g_animation){
-    for (let i = 0; i < 3; i += 1){
-      g_tailAngle[i] = 10*Math.sin((g_time/g_animationSpeed) - (i*45));
-    }
-  }
-
-  let headOffset = 0;
-  if (g_headAnimation) {
-    headOffset = (-1/(g_animationSpeed*10))*((g_time - g_headAnimationStart)**2) + (g_time - g_headAnimationStart);
-    headOffset = headOffset / (7*g_animationSpeed);
-    //console.log(headOffset);
-  }*/
+  let blocks = 0;
 
   gl.uniformMatrix4fv(u_ViewMatrix, false, g_camera.viewMatrix.elements); 
 
@@ -356,35 +427,82 @@ function renderScene(){
   //globalRotMat.rotate(g_globalAngle[1], 0, 0, 1);
   //globalRotMat.rotate(g_globalAngle[2], 1, 0, 0);
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
+  gl.uniform3f(u_dayShade, 1, 1, 1);
 
   const sky = new Cube();
   sky.colorWeights[0] = 0;
-  sky.colorWeights[1] = 0;
+  sky.colorWeights[3] = 1;
+  sky.colorWeights[2] = g_day_shades[g_daytime];
   sky.matrix.translate(-25, -3, -25);
   sky.matrix.scale(50, 50, 50);
-  sky.render();
+  sky.fastRender();
 
+  //console.log(g_day_shades[g_daytime]);
+
+  if (g_day_shades[g_daytime] < 0.15) {
+    gl.uniform3f(u_dayShade, 0.15, 0.15, 0.15);
+  } else {
+    gl.uniform3f(u_dayShade, g_day_shades[g_daytime+50], g_day_shades[g_daytime+30], g_day_shades[g_daytime]);
+  }
   const body = new Cube();
-  body.colorWeights[0] = 1;
-  body.colorWeights[1] = 0;
   for (let x = 0; x < 32; x += 1) {
     for (let z = 0; z < 32; z += 1) {
-      body.color = map_color[map_array[x][z]];
-      body.matrix.setTranslate(x-16, 1, z-16);
-      body.matrix.scale(1, map_array[x][z]+1, 1);
-      body.fastRender();
+      for (let y = map_array[x][z][1]; y <= map_array[x][z][0]; y += 1) {
+        // body.color[0] = map_color[map_array[x][z][0]][0];
+        // body.color[1] = map_color[map_array[x][z][0]][1];
+        // body.color[2] = map_color[map_array[x][z][0]][2];
+        body.color[0] = map_color[y][0];
+        body.color[1] = map_color[y][1];
+        body.color[2] = map_color[y][2];
+        
+        body.matrix.setTranslate(x-16, y+1, z-16);
+        //body.matrix.scale(1, map_array[x][z]+1, 1);
+        if (y == 5) {
+          body.colorWeights[0] = 0;
+          body.colorWeights[4] = map_array[x][z][2];
+        } else if (y > 5 && y < 8) {
+          body.colorWeights[0] = (y-5)*0.1;
+          body.colorWeights[4] = 0;
+        } else if (y < 4) {
+          //body.color[0] = body.color[0]*0.5 + g_water_color[0]*0.5;
+          //body.color[1] = body.color[1]*0.5 + g_water_color[1]*0.5;
+          body.color[2] = body.color[2]*0.6 + 0.4;
+          body.colorWeights[0] = 1;
+        } else {
+          body.colorWeights[0] = 1;
+        }
+        body.fastRender();
+        blocks += 1;
+      }
+      // body.color = map_color[map_array[x][z]];
+      // body.matrix.setTranslate(x-16, 1, z-16);
+      // body.matrix.scale(1, map_array[x][z]+1, 1);
+      // body.fastRender();
     }
   }
 
   const ground = new Cube();
   ground.colorWeights[0] = 1.0;
-  ground.color = [0.15, 0.55, 0.235, 1];
-  ground.matrix.translate(-16, 0, -16);
-  ground.matrix.scale(32, 1, 32);
-  ground.render();
+  ground.color = g_water_color;
+  ground.color[3] = 0.5;
+  ground.matrix.translate(-16, 5.01, -16);
+  ground.matrix.scale(32, 0.1, 32);
+  ground.fastRender();
 
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 1000/frame;
+  fps_display.textContent = "Total terrain blocks: " + blocks;
 }
+
+function sigmoid(x) {
+  return (Math.E ** x) / (1 + (Math.E ** x));
+}
+
+function populate_times() {
+  for (let i = 0; i < 720; i += 1) {
+    g_day_shades[i] = (sigmoid((i / 25)-10));
+  }
+}
+

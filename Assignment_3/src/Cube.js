@@ -3,7 +3,7 @@ class Cube{
     this.type = 'cube';
     // this.position = [0.0, 0.0, 0.0];
     this.color = [1.0, 1.0, 1.0, 1.0];
-    this.colorWeights = [1, 1];
+    this.colorWeights = [1, 0, 0, 0, 0];
     //this.size = 5.0;
     //this.segments = 10;
     this.matrix = new Matrix4();
@@ -122,8 +122,12 @@ class Cube{
     gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
     gl.uniform1f(u_ColorWeight[0], 1.0 - this.colorWeights[0]);
     gl.uniform1f(u_ColorWeight[1], 1.0 - this.colorWeights[1]);
+    gl.uniform1f(u_ColorWeight[2], 1.0 - this.colorWeights[2]);
+    gl.uniform1f(u_ColorWeight[3], 1.0 - this.colorWeights[3]);
+    gl.uniform1f(u_ColorWeight[4], 1.0 - this.colorWeights[4]);
 
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
+
 
     //console.log(this.verticies);
 

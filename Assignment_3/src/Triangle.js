@@ -188,3 +188,10 @@ function drawAllTriangle3DUV(data) {
 
   return n;
 }
+
+
+class triangle_superRenderer {
+  constructor() {
+
+  }
+}
