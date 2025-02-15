@@ -268,6 +268,7 @@ const g_keyStates = new Array(500).fill(false);
 let g_camera;
 const g_water_color = [0.15, 0.15, 0.8, 1];
 let g_day_shades = new Array(720);
+let g_world = "meadow";
 // Set up actions for HTML UI elements
 function addActionsForHtmlUi(){
   document.getElementById('start').onclick = function() {g_animation = true; start_animation(); };
@@ -275,6 +276,9 @@ function addActionsForHtmlUi(){
 
   document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
   document.getElementById('time').addEventListener('mousemove', function() {g_daytime = parseInt(this.value);} )
+
+  document.getElementById('meadow').onclick = function() {g_world = "meadow";}
+  document.getElementById('maze').onclick = function() {g_world = "maze";}
 
   
   // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
@@ -444,56 +448,76 @@ function renderScene(){
   } else {
     gl.uniform3f(u_dayShade, g_day_shades[g_daytime+50], g_day_shades[g_daytime+30], g_day_shades[g_daytime]);
   }
-  const body = new Cube();
-  for (let x = 0; x < 32; x += 1) {
-    for (let z = 0; z < 32; z += 1) {
-      for (let y = map_array[x][z][1]; y <= map_array[x][z][0]; y += 1) {
-        // body.color[0] = map_color[map_array[x][z][0]][0];
-        // body.color[1] = map_color[map_array[x][z][0]][1];
-        // body.color[2] = map_color[map_array[x][z][0]][2];
-        body.color[0] = map_color[y][0];
-        body.color[1] = map_color[y][1];
-        body.color[2] = map_color[y][2];
-        
-        body.matrix.setTranslate(x-16, y+1, z-16);
-        //body.matrix.scale(1, map_array[x][z]+1, 1);
-        if (y == 5) {
-          body.colorWeights[0] = 0;
-          body.colorWeights[4] = map_array[x][z][2];
-        } else if (y > 5 && y < 8) {
-          body.colorWeights[0] = (y-5)*0.1;
-          body.colorWeights[4] = 0;
-        } else if (y < 4) {
-          //body.color[0] = body.color[0]*0.5 + g_water_color[0]*0.5;
-          //body.color[1] = body.color[1]*0.5 + g_water_color[1]*0.5;
-          body.color[2] = body.color[2]*0.6 + 0.4;
-          body.colorWeights[0] = 1;
-        } else {
-          body.colorWeights[0] = 1;
-        }
-        body.fastRender();
-        blocks += 1;
-      }
-      // body.color = map_color[map_array[x][z]];
-      // body.matrix.setTranslate(x-16, 1, z-16);
-      // body.matrix.scale(1, map_array[x][z]+1, 1);
-      // body.fastRender();
-    }
-  }
 
-  const ground = new Cube();
-  ground.colorWeights[0] = 1.0;
-  ground.color = g_water_color;
-  ground.color[3] = 0.5;
-  ground.matrix.translate(-16, 5.01, -16);
-  ground.matrix.scale(32, 0.1, 32);
-  ground.fastRender();
+  if (g_world == "meadow") {
+    const body = new Cube();
+    for (let x = 0; x < 32; x += 1) {
+      for (let z = 0; z < 32; z += 1) {
+        for (let y = map0_array[x][z][1]; y <= map0_array[x][z][0]; y += 1) {
+          body.color[0] = map0_color[y][0];
+          body.color[1] = map0_color[y][1];
+          body.color[2] = map0_color[y][2];
+          
+          body.matrix.setTranslate(x-16, y+1, z-16);
+          if (y == 5) {
+            body.colorWeights[0] = 0;
+            body.colorWeights[4] = map0_array[x][z][2];
+          } else if (y > 5 && y < 8) {
+            body.colorWeights[0] = (y-5)*0.1;
+            body.colorWeights[4] = 0;
+          } else if (y < 4) {
+            body.color[2] = body.color[2]*0.6 + 0.4;
+            body.colorWeights[0] = 1;
+          } else {
+            body.colorWeights[0] = 1;
+          }
+          body.fastRender();
+          blocks += 1;
+        }
+      }
+    }
+
+    const ground = new Cube();
+    ground.colorWeights[0] = 1.0;
+    ground.color = g_water_color;
+    ground.color[3] = 0.5;
+    ground.matrix.translate(-16, 5.01, -16);
+    ground.matrix.scale(32, 0.1, 32);
+    ground.fastRender();
+
+  } else if (g_world == "maze") {
+    const body = new Cube();
+    for (let x = 0; x < 32; x += 1) {
+      for (let z = 0; z < 32; z += 1) {
+        for (let y = map1_array[x][z][1]; y <= map1_array[x][z][0]; y += 1) {
+          if (y > 0) {
+            body.color[0] = map1_color[y][0];
+            body.color[1] = map1_color[y][1];
+            body.color[2] = map1_color[y][2];
+            
+            body.matrix.setTranslate(x-16, y+1, z-16);
+            body.colorWeights[0] = 0;
+            body.colorWeights[4] = map1_array[x][z][2];
+            body.fastRender();
+            blocks += 1;
+          }
+        }
+      }
+    }
+
+    const ground = new Cube();
+    ground.colorWeights[0] = 1.0;
+    ground.color = map1_color[0];
+    ground.matrix.translate(-16, 1, -16);
+    ground.matrix.scale(32, 1, 32);
+    ground.fastRender();
+  }
 
   //drawCube(new Matrix4(), [1, 0, 0, 1]);
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 1000/frame;
-  fps_display.textContent = "Total terrain blocks: " + blocks;
+  blocks_display.textContent = "Total terrain blocks: " + blocks;
 }
 
 function sigmoid(x) {
