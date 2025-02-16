@@ -269,12 +269,14 @@ let g_camera;
 const g_water_color = [0.15, 0.15, 0.8, 1];
 let g_day_shades = new Array(720);
 let g_world = "meadow";
+let g_beam = new Array(100);
+let g_enable_beam = false;
 // Set up actions for HTML UI elements
 function addActionsForHtmlUi(){
   document.getElementById('start').onclick = function() {g_animation = true; start_animation(); };
   document.getElementById('stop').onclick = function() {g_animation = false; };
 
-  document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
+  //document.getElementById('angleSlide').addEventListener('mousemove', function() {g_globalAngle[0] = parseInt(this.value); renderScene();} )
   document.getElementById('time').addEventListener('mousemove', function() {g_daytime = parseInt(this.value);} )
 
   document.getElementById('meadow').onclick = function() {g_world = "meadow";}
@@ -282,7 +284,7 @@ function addActionsForHtmlUi(){
 
   
   // document.getElementById('webgl').addEventListener('ondrag', function() {g_selectedSize = this.value; } );
-  document.getElementById('webgl').addEventListener('mousedown', click );
+  //document.getElementById('webgl').addEventListener('mousedown', click );
   document.getElementById('webgl').addEventListener('mousemove', track );
   document.getElementById('webgl').onmouseout = function() {g_lastMouse = [0, 0];};
 }
@@ -297,8 +299,8 @@ function main() {
   initTextures(gl,0);
 
   // Register function (event handler) to be called on a mouse press
-  canvas.onmousedown = click;
-  canvas.onmousemove = function(ev) { if(ev.buttons == 1) {click(ev);} };
+  canvas.onmousedown = (event) => click(event);
+  //canvas.onmousemove = function(ev) { if(ev.buttons == 1) {click(ev);} };
   document.onkeydown = keydown;
   document.onkeyup = keyup;
 
@@ -309,6 +311,10 @@ function main() {
   g_camera.updateLook();
 
   populate_times();
+
+  for (let i = 0; i < 100; i += 1){
+    g_beam[i] = new Vector3();
+  }
 
 
   // Specify the color for clearing <canvas>
@@ -375,18 +381,68 @@ function move(){
 }
 
 function click(ev) {
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   // Extract the event click and return it in WebGL coordinates
   // const [x, y] = convertCoordinatesEventToGl(ev);
-  const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
-  const y = g_lastMouse[1] - ev.clientY; // y coordinate of a mouse pointer
+  // const x = g_lastMouse[0] - ev.clientX; // x coordinate of a mouse pointer
+  // const y = g_lastMouse[1] - ev.clientY; // y coordinate of a mouse pointer
 
-  g_globalAngle[0] += x;
-  g_globalAngle[1] -= y;
-  g_lastMouse = [ev.clientX, ev.clientY];
+  // g_globalAngle[0] += x;
+  // g_globalAngle[1] -= y;
+  // g_lastMouse = [ev.clientX, ev.clientY];
   // console.log(x + ", " + g_lastMouse[0] + " - " + ev.clientX);
   // console.log(g_globalAngle + ", " + y);
 
-  renderScene();
+  const f = new Vector3();
+  f.set(g_camera.at);
+  f.sub(g_camera.eye);
+  f.normalize();
+
+  const start = new Vector3(); // TODO: Start lower?
+  start.set(g_camera.eye);
+  const check = new Vector3();
+  const point = new Vector3();
+  for (let i = 1; i < 100; i += 1) {
+    point.set(f);
+    point.mul(i*0.1);
+    check.set(point);
+    check.add(start);
+
+    check.elements[0] = Math.floor(check.elements[0]);
+    //check.elements[1] = Math.floor(check.elements[0]);
+    check.elements[2] = Math.floor(check.elements[2]);
+    if (g_enable_beam) {
+      g_beam[i].set(check);
+    }
+    if (g_world == "meadow") {
+      if (map0_array[check.elements[0]+16][check.elements[2]+16][0] + 2 >= check.elements[1]) {
+        let change = 0;
+        if (!ev.shiftKey && map0_color.length - 1 > map0_array[check.elements[0]+16][check.elements[2]+16][0]) {
+          change = 1;
+        } else if (ev.shiftKey) {
+          change = -1;
+        }
+        map0_array[check.elements[0]+16][check.elements[2]+16][0] += change;
+        i = 100;
+        //console.log("here");
+      }
+    } else if (g_world = "maze") {
+      if (map1_array[check.elements[0]+16][check.elements[2]+16][0] + 2 >= check.elements[1]) {
+        let change = 0;
+        if (!ev.shiftKey && map1_color.length - 1 > map1_array[check.elements[0]+16][check.elements[2]+16][0]) {
+          change = 1;
+        } else if (ev.shiftKey) {
+          change = -1;
+        }
+        map1_array[check.elements[0]+16][check.elements[2]+16][0] += change;
+        i = 100;
+        //console.log("here");
+      }
+    }
+  }
+
+  //console.log(g_beam);
+  //renderScene();
 }
 
 // Extract the event click and return it in WebGL coordinates
@@ -434,15 +490,13 @@ function renderScene(){
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
   gl.uniform3f(u_dayShade, 1, 1, 1);
 
-  gl.disable(gl.CULL_FACE);
   const sky = new Cube();
   sky.colorWeights[0] = 0;
   sky.colorWeights[3] = 1;
   sky.colorWeights[2] = g_day_shades[g_daytime];
-  sky.matrix.translate(-25, -3, -25);
-  sky.matrix.scale(50, 50, 50);
+  sky.matrix.translate(25, -3, -25);
+  sky.matrix.scale(-50, 50, 50);
   sky.fastRender();
-  gl.enable(gl.CULL_FACE);
 
   //console.log(g_day_shades[g_daytime]);
 
@@ -516,10 +570,16 @@ function renderScene(){
     ground.fastRender();
   }
 
-  const cube = new Cube();
-  cube.matrix.translate(0, 10, 10);
-  cube.fastRender();
-  //drawCube(new Matrix4(), [1, 0, 0, 1]);
+  if (g_enable_beam) {
+    const cube = new Cube();
+    for (let i = 0; i < 100; i += 1) {
+      cube.matrix.setTranslate(g_beam[i].elements[0], g_beam[i].elements[1], g_beam[i].elements[2]);
+      cube.matrix.scale(0.1, 0.1, 0.1);
+      cube.fastRender();
+      //blocks += 1;
+      //console.log(blocks);
+  }
+  }
 
   const frame = performance.now() - now;
   fps_display.textContent = "fps: " + 1000/frame;

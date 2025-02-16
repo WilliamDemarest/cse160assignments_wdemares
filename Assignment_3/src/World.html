@@ -24,7 +24,6 @@
     </div>
 
     <div>
-      Camera Angle: <input type="range" min="-180" max="180" value="-20" class="slider" id="angleSlide">
       Time of Day: <input type="range" min="0" max="499" value="499" class="slider" id="time">
     </div>
 
@@ -36,7 +35,21 @@
     <div>
     </p>
       Notes to grader: <br>
-
+      - Panning with the mouse is based on the distance from the center of the canvas. <br>
+      There is a dead space in the midle of the canvas where the cursour can rest without movement. <br>
+      - 'Q' and 'E' control rotation around the forward axis, not panning. <br>
+      After adding horizontal and vertical panning with the mouse, which also allowed <br>
+      for 3D movement, this kind of rotaion became very helpful to have and those controlls <br>
+      are more similar to other aplications I have used. <br>
+      - Left click to place a block, shift click to remove a block. Overhangs are not supported, <br>
+      highest block in stack will be increased/decreased. Color/texture is defined by height, so blocks <br>
+      will not be added if they are above the maximum defined position in the color map for each world. <br>
+      The block should appear where you are looking, not just the closest block in front of you, but the tracing is not perfect. <br>
+      - The map can be changed with the "world" buttons. Meadow world is the default and runs smooth <br>
+      on my device but a little slower with 4x slowdown. Maze world has much less cubes and will run better. <br>
+      - The "game" is the maze in maze world. <br>
+      - The maps, especially meadow world, are hollowed out to lower the number of blocks. This process is done <br>
+      when the map is generated from a png pattern in python, and so will not be updated when blocks are removed. <br>
     <p>
     </div>
 
