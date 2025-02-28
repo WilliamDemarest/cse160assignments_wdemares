@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 3</title>
+  </head>
+  <div>
+    <p>
+      William Demarest <br>
+      wdemares@ucsc.edu <br>
+  </div>
+
+  <body onload="main()">
+    <canvas id="webgl" width="600" height="600">
+    Please use a browser that supports "canvas"
+    </canvas>
+
+    <div id="fps"></div>
+    <div id="blocks"></div>
+
+    <div>
+      <button type="button" id="start">Start Animation</button>
+      <button type="button" id="stop">Stop Animation</button>
+    </div>
+
+    <div>
+      Time of Day (light position): <input type="range" min="0" max="499" value="499" class="slider" id="time">
+    </div>
+
+    <div>
+      <button type="button" id="lighting">Enable Lighting</button>
+      <button type="button" id="no_lighting">Disable Lighting</button>
+      <button type="button" id="show_normals">Show Normals</button>
+    </div>
+
+    <div>
+      <button type="button" id="meadow">Meadow World</button>
+      <button type="button" id="maze">Maze World</button>
+    </div>
+
+    <div>
+    </p>
+      Notes to grader: <br>
+      - Panning with the mouse is based on the distance from the center of the canvas. <br>
+      There is a dead space in the midle of the canvas where the cursour can rest without movement. <br>
+      - 'Q' and 'E' control rotation around the forward axis, not panning. <br>
+      After adding horizontal and vertical panning with the mouse, which also allowed <br>
+      for 3D movement, this kind of rotaion became very helpful to have and those controlls <br>
+      are more similar to other aplications I have used. <br>
+      
+    <p>
+    </div>
+
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix-cse160.js"></script>
+    <script src="vert.js"></script>
+    <script src="frag.js"></script>
+    <script src="Triangle.js"></script>
+    <script src="Trapezoid.js"></script>
+    <script src="Cube.js"></script>
+    <script src="Sphere.js"></script>
+    <script src="Camera.js"></script>
+    <script src="map.js"></script>
+    <script src="World.js"></script>
+  </body>
+</html>
