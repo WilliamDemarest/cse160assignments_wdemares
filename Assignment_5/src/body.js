@@ -3,7 +3,7 @@ const G = 6.6743 * Math.pow(10, -11);
 
 class Body {
     constructor(scene, size, color, lighting=false) {
-        this.position = [0, 0, 0];
+        this.position = [0, 0, 0]; //TODO: convert to vectors
         this.parent;
         this.velocity = [0, 0, 0];
         this.last_grav = new THREE.Vector3(0, 0, 0);

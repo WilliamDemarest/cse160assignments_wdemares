@@ -5,11 +5,12 @@ class Planet {
     constructor(scene, size, color, lighting=true) {
         this.orbit_pos = 0;
         this.distance = 0;
-        this.position = [0, 0, 0];
-        this.tan_velocity = 0;
+        this.position = new THREE.Vector3(0, 0, 0);
+        this.velocity = new THREE.Vector3(0, 0, 0);
         this.mass = 0;
         this.parent;
         this.children = [];
+        this.children_obj = [];
         this.influ = 0;
 
         const Geo = new THREE.SphereGeometry( size, 32, 16); 
@@ -34,21 +35,25 @@ class Planet {
         this.distance = distance;
 
         this.parent_mass = parent.mass;
-        this.tan_velocity = Math.sqrt((G * this.parent_mass) / this.distance);
+        this.velocity.z = Math.sqrt((G * this.parent_mass) / this.distance);
     }
 
     set_pos(x, y, z) {
         this.sphere.position.set( x, y, z );
-        this.position = [x, y, z];
+        this.position.set( x, y, z );
     }
 
     orbit_tick(warp=1) { // divide by distance?
-        this.orbit_pos += (this.tan_velocity*warp) / this.distance;
+        this.orbit_pos += (this.velocity.z*warp) / this.distance;
         this.set_pos(
             this.distance * Math.cos(this.orbit_pos),
             0, 
             this.distance * Math.sin(this.orbit_pos),
         );
+
+        // for(let i = 0; i < this.children_obj.length(); i += 1) {
+        //     this.children_obj[i].position.x += 
+        // }
     }
     
 

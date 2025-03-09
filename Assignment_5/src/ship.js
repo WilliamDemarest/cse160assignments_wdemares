@@ -5,11 +5,14 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 const G = 6.6743 * Math.pow(10, -11);
 
 class Ship {
-    constructor(scene, size, color, lighting=false) {
-        this.position = [0, 0, 0];
+    constructor(scene) {
+        this.position = new THREE.Vector3(0, 0, 0);
         this.parent;
-        this.velocity = [0, 0, 0];
+        this.velocity = new THREE.Vector3(0, 0, 0);
         this.camera;
+
+        this.old_parent_pos = new THREE.Vector3(0, 0, 0);
+        this.inertia = true;
 
         // const Geo = new THREE.SphereGeometry( size, 32, 16); 
         // let Mat;
@@ -27,7 +30,7 @@ class Ship {
     }
 
     set_pos(x, y, z) {
-        this.sphere.position.set( x, y, z );
+        this.mesh.position.set( x, y, z );
     }
 
     orbit(parent, distance) {
@@ -35,12 +38,14 @@ class Ship {
         this.distance = distance;
 
         this.parent = parent;
-        this.velocity[2] += Math.sqrt((G * this.parent.mass) / this.distance);
-        this.position = [
-            this.parent.position[0] + distance,
-            this.parent.position[1],
-            this.parent.position[2],
-        ];
+        this.velocity.z += Math.sqrt((G * this.parent.mass) / this.distance);
+
+        //this.velocity.add(this.parent.velocity);
+        this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
+        
+        this.position.add(this.parent.position);
+        this.position.x -= distance;
+        this.set_pos(this.position.x, this.position.y, this.position.z);
     }
 
     set_camera_pos() {
@@ -65,16 +70,18 @@ class Ship {
         f.subVectors(forwards, up);
         //TODO: add a local up vector to ship, use that to adjsut camera
         this.camera.position.set(
-            this.position[0] - f.x,
-            this.position[1] - f.y,
-            this.position[2] - f.z,
+            this.position.x - f.x,
+            this.position.y - f.y,
+            this.position.z - f.z,
         );
+
+        this.camera.lookAt(this.position.x, this.position.y, this.position.z);
     
         //console.log(this.camera);
-        this.camera.lookAt(this.position[0], this.position[1], this.position[2]);
+        this.set_pos(this.position.x, this.position.y, this.position.z);
     }
 
-    attatch_camera(camera, scene) {
+    attatch_camera(camera) {
         this.camera = camera;
         //this.camera.parent = this.mesh;
         //this.mesh.add(camera);
@@ -98,22 +105,34 @@ class Ship {
             return;
         }
         const speed = -0.1;
-        if (key_array[87]) { "W"
-            this.mesh.translateZ(speed * -1);
-            //this.camera.translateZ(speed);
-        } 
-        if (key_array[83]) { "S"
-            this.mesh.translateZ(speed);
-            //this.camera.translateZ(speed * -1);
-        } 
-        if (key_array[65]) { "A"
-            this.mesh.translateX(speed * -1);
-            //this.camera.translateX(speed);
-        } 
-        if (key_array[68]) { "D"
-            this.mesh.translateX(speed);
-            //this.camera.translateX(speed * -1);
-        } 
+        if (this.inertia) {
+            const throttle = 0.0001;
+            if (key_array[87]) { "W"
+                const forwards = new THREE.Vector3(0, 0, 1);
+                forwards.applyQuaternion(this.mesh.quaternion);
+                forwards.multiplyScalar(throttle);
+                this.velocity.add(forwards);
+            } 
+
+
+        } else {
+            if (key_array[87]) { "W"
+                this.mesh.translateZ(speed * -1);
+                //this.camera.translateZ(speed);
+            } 
+            if (key_array[83]) { "S"
+                this.mesh.translateZ(speed);
+                //this.camera.translateZ(speed * -1);
+            } 
+            if (key_array[65]) { "A"
+                this.mesh.translateX(speed * -1);
+                //this.camera.translateX(speed);
+            } 
+            if (key_array[68]) { "D"
+                this.mesh.translateX(speed);
+                //this.camera.translateX(speed * -1);
+            } 
+        }
         if (key_array[81]) {
             this.mesh.rotateZ(speed * 0.25);
             //this.camera.rotateZ(speed * -0.25);
@@ -122,21 +141,19 @@ class Ship {
             this.mesh.rotateZ(speed * -0.25);
             //this.camera.rotateZ(speed * 0.25);
         }
-        this.position = [
-            this.mesh.position.x,
-            this.mesh.position.y,
-            this.mesh.position.z,
-        ];
+        this.position.set(this.mesh.position.x, this.mesh.position.y, this.mesh.position.z);
 
+        //this.set_pos(this.position[0], this.position[1], this.position[2]);
         this.set_camera_pos();
     }
 
     fall(warp=1) {
-        const a = new THREE.Vector3(
-            this.parent.position[0] - this.position[0],
-            this.parent.position[1] - this.position[1],
-            this.parent.position[2] - this.position[2],
-        );
+        if (!this.mesh) {
+            return;
+        }
+        const a = new THREE.Vector3(0, 0, 0);
+        a.subVectors(this.parent.position, this.position);
+
         const r = Math.sqrt(
             Math.pow(a.x, 2) +
             Math.pow(a.y, 2) +
@@ -151,19 +168,18 @@ class Ship {
         //     Math.pow(this.velocity[2], 2) 
         // );
 
-        this.velocity = [
-            this.velocity[0] + a.x,
-            this.velocity[1] + a.y,
-            this.velocity[2] + a.z,
-        ];
+        this.velocity.add(a);
 
-        this.position = [
-            this.position[0] + this.velocity[0]*warp,
-            this.position[1] + this.velocity[1]*warp,
-            this.position[2] + this.velocity[2]*warp,
-        ];
+        this.position.sub(this.old_parent_pos);
+        this.position.set(
+            this.position.x + this.velocity.x*warp,
+            this.position.y + this.velocity.y*warp,
+            this.position.z + this.velocity.z*warp,
+        );
+        this.position.add(this.parent.position);
+        this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
 
-        this.set_pos(this.position[0], this.position[1], this.position[2]);
+        this.set_pos(this.position.x, this.position.y, this.position.z);
     }
 
     load(scene){

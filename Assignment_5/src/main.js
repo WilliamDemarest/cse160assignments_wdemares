@@ -16,7 +16,7 @@ import Ship from './ship.js'
 const scene = new THREE.Scene();
 const canvas = document.getElementById("canvas1");
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-const ship = new Ship(scene, 0.1, 0x8800ff);
+const ship = new Ship(scene);
 
 //const camera = new THREE.PerspectiveCamera( 75, 700 / 700, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
@@ -102,13 +102,14 @@ sun.mass = 100000000;
 
 const planet1 = new Planet(scene, 1, 0x00aaaa)
 planet1.orbit(sun, 30);
+planet1.mass = 1000000;
 
 const planet2 = new Planet(scene, 1, 0xff8800)
 planet2.orbit(sun, 15);
 console.log(planet2.tan_velocity);
 
-const body1 = new Body(scene, 1, 0xff0000);
-body1.orbit(sun, 15);
+//const body1 = new Body(scene, 1, 0xff0000);
+//body1.orbit(sun, 15);
 //body1.velocity[2] += 0.001;
 
 // const Geo = new THREE.SphereGeometry( 0.3, 32, 16); 
@@ -132,16 +133,19 @@ function animate() {
   if(!ship.mesh && scene.getObjectByName("ship")){
     ship.mesh = scene.getObjectByName("ship");
     ship.mesh.scale.set(0.01, 0.01, 0.01);
-    ship.attatch_camera(camera, scene);
+    ship.attatch_camera(camera);
+    ship.orbit(planet1, 3);
     //console.log(ship.mesh);
   }
 	//cube.rotation.x += 0.01;
 	//cube.rotation.y += 0.01;
     //camera.rotateY(0.1);
-  ship.move(g_keyStates);
   planet1.orbit_tick(g_time.speed);
   planet2.orbit_tick(g_time.speed);
-  body1.fall(g_time.speed);
+  //body1.fall(g_time.speed);
+
+  ship.move(g_keyStates);
+  ship.fall(g_time.speed)
 	renderer.render( scene, camera );
 
 }
