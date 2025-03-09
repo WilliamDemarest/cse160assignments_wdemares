@@ -1,0 +1,213 @@
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+const G = 6.6743 * Math.pow(10, -11);
+
+class Ship {
+    constructor(scene, size, color, lighting=false) {
+        this.position = [0, 0, 0];
+        this.parent;
+        this.velocity = [0, 0, 0];
+        this.camera;
+
+        // const Geo = new THREE.SphereGeometry( size, 32, 16); 
+        // let Mat;
+        // if (lighting) {
+        //     Mat = new THREE.MeshPhongMaterial( { color: color } );
+        // } else {
+        //     Mat = new THREE.MeshBasicMaterial( { color: color } );
+        // }
+        // this.mesh = new THREE.Mesh( Geo, Mat );
+        this.mesh;
+        this.load(scene);
+        console.log(this.mesh)
+        //this.mesh.position.set( 0, 0, 0 );
+        //scene.add(this.mesh);
+    }
+
+    set_pos(x, y, z) {
+        this.sphere.position.set( x, y, z );
+    }
+
+    orbit(parent, distance) {
+        this.parent = parent;
+        this.distance = distance;
+
+        this.parent = parent;
+        this.velocity[2] += Math.sqrt((G * this.parent.mass) / this.distance);
+        this.position = [
+            this.parent.position[0] + distance,
+            this.parent.position[1],
+            this.parent.position[2],
+        ];
+    }
+
+    set_camera_pos() {
+        if (!this.mesh) {
+            return;
+        }
+        const forwards = new THREE.Vector3(0, 0, 1);
+        const up = new THREE.Vector3(0, 1, 0);
+        forwards.applyQuaternion(this.mesh.quaternion);
+        up.applyQuaternion(this.mesh.quaternion);
+
+        this.camera.up.set(up.x, up.y, up.z);
+        this.camera.up.applyAxisAngle(forwards, 0.2617);
+        //console.log(this.camera);
+        forwards.applyAxisAngle(up, 0.09);
+        
+        forwards.multiplyScalar(0.5);
+        up.multiplyScalar(0.25);
+        //const f = this.mesh.localToWorld(this.forwards);
+        const f = new THREE.Vector3(0, 0, 0);
+        //const f = forwards;
+        f.subVectors(forwards, up);
+        //TODO: add a local up vector to ship, use that to adjsut camera
+        this.camera.position.set(
+            this.position[0] - f.x,
+            this.position[1] - f.y,
+            this.position[2] - f.z,
+        );
+    
+        //console.log(this.camera);
+        this.camera.lookAt(this.position[0], this.position[1], this.position[2]);
+    }
+
+    attatch_camera(camera, scene) {
+        this.camera = camera;
+        //this.camera.parent = this.mesh;
+        //this.mesh.add(camera);
+        //THREE.SceneUtils.attach( this.camera, scene, this.mesh );
+        this.set_camera_pos();
+    }
+
+    rotate(x, y) {
+        if (!this.mesh) {
+            return;
+        }
+        // rotate camera based on ship's rotation matrix?
+        //this.camera.rotateY(x*0.5);
+        //this.camera.rotateX(y*0.5);
+        this.mesh.rotateY(x);
+        this.mesh.rotateX(y);
+    }
+
+    move(key_array) {
+        if (!this.mesh) {
+            return;
+        }
+        const speed = -0.1;
+        if (key_array[87]) { "W"
+            this.mesh.translateZ(speed * -1);
+            //this.camera.translateZ(speed);
+        } 
+        if (key_array[83]) { "S"
+            this.mesh.translateZ(speed);
+            //this.camera.translateZ(speed * -1);
+        } 
+        if (key_array[65]) { "A"
+            this.mesh.translateX(speed * -1);
+            //this.camera.translateX(speed);
+        } 
+        if (key_array[68]) { "D"
+            this.mesh.translateX(speed);
+            //this.camera.translateX(speed * -1);
+        } 
+        if (key_array[81]) {
+            this.mesh.rotateZ(speed * 0.25);
+            //this.camera.rotateZ(speed * -0.25);
+        } 
+        if (key_array[69]) {
+            this.mesh.rotateZ(speed * -0.25);
+            //this.camera.rotateZ(speed * 0.25);
+        }
+        this.position = [
+            this.mesh.position.x,
+            this.mesh.position.y,
+            this.mesh.position.z,
+        ];
+
+        this.set_camera_pos();
+    }
+
+    fall(warp=1) {
+        const a = new THREE.Vector3(
+            this.parent.position[0] - this.position[0],
+            this.parent.position[1] - this.position[1],
+            this.parent.position[2] - this.position[2],
+        );
+        const r = Math.sqrt(
+            Math.pow(a.x, 2) +
+            Math.pow(a.y, 2) +
+            Math.pow(a.z, 2)
+        );
+        a.normalize();
+        a.multiplyScalar(this.parent.get_gravity(r));
+        a.multiplyScalar(warp)        
+        // const vm = Math.sqrt(
+        //     Math.pow(this.velocity[0], 2) +
+        //     Math.pow(this.velocity[1], 2) +
+        //     Math.pow(this.velocity[2], 2) 
+        // );
+
+        this.velocity = [
+            this.velocity[0] + a.x,
+            this.velocity[1] + a.y,
+            this.velocity[2] + a.z,
+        ];
+
+        this.position = [
+            this.position[0] + this.velocity[0]*warp,
+            this.position[1] + this.velocity[1]*warp,
+            this.position[2] + this.velocity[2]*warp,
+        ];
+
+        this.set_pos(this.position[0], this.position[1], this.position[2]);
+    }
+
+    load(scene){
+        // Instantiate a loader
+        const loader = new GLTFLoader();
+        
+        // Optional: Provide a DRACOLoader instance to decode compressed mesh data
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
+        loader.setDRACOLoader( dracoLoader );
+        // Load a glTF resource
+        loader.load(
+            // resource URL
+            './sidewinder_mk_i/scene.gltf',
+            // called when the resource is loaded
+            function ( gltf, ) {
+                gltf.scene.name = "ship";
+                
+                scene.add( gltf.scene );
+        
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+        
+            },
+            // called while loading is progressing
+            function ( xhr ) {
+        
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                //this.mesh = model;
+                //console.log(this.mesh);
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened ' + error);
+        
+            }
+        );
+    }
+}
+
+
+export default Ship;
