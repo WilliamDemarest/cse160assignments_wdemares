@@ -14,6 +14,7 @@ class Ship {
         this.old_parent_pos = new THREE.Vector3(0, 0, 0);
         this.inertia = true;
 
+        this.zoom = 1;
         // const Geo = new THREE.SphereGeometry( size, 32, 16); 
         // let Mat;
         // if (lighting) {
@@ -42,7 +43,7 @@ class Ship {
 
         //this.velocity.add(this.parent.velocity);
         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
-        
+
         this.position.add(this.parent.position);
         this.position.x -= distance;
         this.set_pos(this.position.x, this.position.y, this.position.z);
@@ -54,28 +55,37 @@ class Ship {
         }
         const forwards = new THREE.Vector3(0, 0, 1);
         const up = new THREE.Vector3(0, 1, 0);
+        const left = new THREE.Vector3(1, 0, 0);
+        left.applyQuaternion(this.mesh.quaternion);
+
         forwards.applyQuaternion(this.mesh.quaternion);
         up.applyQuaternion(this.mesh.quaternion);
 
         this.camera.up.set(up.x, up.y, up.z);
+
         this.camera.up.applyAxisAngle(forwards, 0.2617);
-        //console.log(this.camera);
-        forwards.applyAxisAngle(up, 0.09);
+        forwards.applyAxisAngle(up, -0.04);
+        left.multiplyScalar(-0.05);
         
-        forwards.multiplyScalar(0.5);
-        up.multiplyScalar(0.25);
+        forwards.multiplyScalar(0.5*this.zoom);
+        up.multiplyScalar(0.25*this.zoom);
         //const f = this.mesh.localToWorld(this.forwards);
         const f = new THREE.Vector3(0, 0, 0);
         //const f = forwards;
         f.subVectors(forwards, up);
         //TODO: add a local up vector to ship, use that to adjsut camera
         this.camera.position.set(
-            this.position.x - f.x,
-            this.position.y - f.y,
-            this.position.z - f.z,
+            this.position.x - f.x + left.x,
+            this.position.y - f.y + left.y,
+            this.position.z - f.z + left.z,
         );
 
-        this.camera.lookAt(this.position.x, this.position.y, this.position.z);
+        //up.multiplyScalar(0.25);
+        this.camera.lookAt(
+            this.position.x + up.x + left.x,
+            this.position.y + up.y + left.y,
+            this.position.z + up.z + left.z
+        );
     
         //console.log(this.camera);
         this.set_pos(this.position.x, this.position.y, this.position.z);
@@ -112,7 +122,12 @@ class Ship {
                 forwards.applyQuaternion(this.mesh.quaternion);
                 forwards.multiplyScalar(throttle);
                 this.velocity.add(forwards);
-            } 
+                this.plumes["cones"][0].visible = true;
+                this.plumes["cones"][1].visible = true;
+            } else {
+                this.plumes["cones"][0].visible = false;
+                this.plumes["cones"][1].visible = false;
+            }
 
 
         } else {
@@ -180,6 +195,13 @@ class Ship {
         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
 
         this.set_pos(this.position.x, this.position.y, this.position.z);
+
+        this.v_helper.position.setX(this.position.x);
+        this.v_helper.position.setY(this.position.y);
+        this.v_helper.position.setZ(this.position.z);
+        this.v_helper.setDirection(this.velocity);
+        this.v_helper.setLength(mag(this.velocity)*50);
+        //console.log(this.v_helper);
     }
 
     load(scene){
@@ -223,7 +245,49 @@ class Ship {
             }
         );
     }
+
+    init_details(scene) {
+        const spotLight = new THREE.SpotLight( 0xffffff, 5, 100, 0.15, 0.5);
+        spotLight.target = this.mesh;
+        spotLight.position.set( 0, 0, -1 );
+        this.mesh.add(spotLight);
+
+        this.v_helper = new THREE.ArrowHelper(
+            this.velocity,
+            this.position,
+            0.2,
+            0xff0000,
+        );
+        scene.add( this.v_helper );
+
+        const geometry = new THREE.ConeGeometry( 1, 10, 6 ); 
+        const material = new THREE.MeshBasicMaterial( {color: 0xeeff} );
+        const conel = new THREE.Mesh(geometry, material ); 
+        conel.position.set(-6.6, -1.4, -12);
+        conel.rotateZ(0.2617);
+        conel.rotateX(Math.PI / -2);
+        //conel.rotateY(-0.09);
+        this.mesh.add( conel );
+
+        const coner = new THREE.Mesh(geometry, material ); 
+        coner.position.set(0, 0, -12);
+        coner.position.set(6.8, 2.2, -12);
+        coner.rotateZ(0.2617);
+        coner.rotateX(Math.PI / -2);
+        //coner.rotateY(-0.2);
+        this.mesh.add( coner );
+        
+        this.plumes = {"cones": [conel, coner]};
+        console.log(this.plumes["cones"])
+    }
 }
 
+function mag(v) {
+    return Math.sqrt(
+        Math.pow(v.x, 2) +
+        Math.pow(v.y, 2) +
+        Math.pow(v.z, 2) 
+    );
+}
 
 export default Ship;

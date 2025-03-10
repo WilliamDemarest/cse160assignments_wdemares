@@ -18,6 +18,21 @@ const canvas = document.getElementById("canvas1");
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 const ship = new Ship(scene);
 
+// const sky_loader = new THREE.CubeTextureLoader();
+
+// const textureCube = sky_loader.load(new Array(6).fill('sky1.png'));
+// scene.background = textureCube;
+var skyGeo = new THREE.SphereGeometry(500, 25, 25);
+var loader  = new THREE.TextureLoader(),
+        texture = loader.load( "./real_sky4.png" );
+        var material = new THREE.MeshPhongMaterial({ 
+          map: texture,
+  });
+
+var sky = new THREE.Mesh(skyGeo, material);
+  sky.material.side = THREE.BackSide;
+  scene.add(sky);
+
 //const camera = new THREE.PerspectiveCamera( 75, 700 / 700, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -35,6 +50,7 @@ canvas.addEventListener("click", async () => {
 });
 
 canvas.addEventListener("mousemove", rotate);
+//document.addEventListener("scroll", (ev) => {console.log(ev);});
 
 //document.getElementById('warp').addEventListener('mousemove', function() {g_warp = parseInt(this.value);} )
 
@@ -97,14 +113,14 @@ gui.add(g_time, 'speed', 0, 100, 1);
 
 camera.position.z = 60;
 
-const sun = new Planet(scene, 2, 0xffff99, false);
+const sun = new Planet(scene, 2, 0xffff99, false, false);
 sun.mass = 100000000;
 
 const planet1 = new Planet(scene, 1, 0x00aaaa)
 planet1.orbit(sun, 30);
 planet1.mass = 1000000;
 
-const planet2 = new Planet(scene, 1, 0xff8800)
+const planet2 = new Planet(scene, 1, 0xff8800, true, 'venus_radar.jpg')
 planet2.orbit(sun, 15);
 console.log(planet2.tan_velocity);
 
@@ -125,6 +141,9 @@ const light = new THREE.PointLight( 0xFFFFFF, 8000);
 light.position.set( 0, 0, 0 );
 scene.add( light );
 
+const ambient = new THREE.AmbientLight( 0xffffff, 0.01 ); // soft white light
+scene.add( ambient );
+
 //const helper = new THREE.PointLightHelper( light );
 //scene.add( helper );
 
@@ -134,7 +153,9 @@ function animate() {
     ship.mesh = scene.getObjectByName("ship");
     ship.mesh.scale.set(0.01, 0.01, 0.01);
     ship.attatch_camera(camera);
+    ship.init_details(scene);
     ship.orbit(planet1, 3);
+
     //console.log(ship.mesh);
   }
 	//cube.rotation.x += 0.01;

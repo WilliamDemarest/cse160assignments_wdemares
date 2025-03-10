@@ -2,7 +2,7 @@ import * as THREE from 'three';
 const G = 6.6743 * Math.pow(10, -11);
 
 class Planet {
-    constructor(scene, size, color, lighting=true) {
+    constructor(scene, size, color, lighting=true, texture=false) {
         this.orbit_pos = 0;
         this.distance = 0;
         this.position = new THREE.Vector3(0, 0, 0);
@@ -15,7 +15,11 @@ class Planet {
 
         const Geo = new THREE.SphereGeometry( size, 32, 16); 
         let Mat;
-        if (lighting) {
+        if (texture) {
+            Mat = new THREE.MeshPhongMaterial( {
+                map: new THREE.TextureLoader().load(texture)
+            } );
+        } else if (lighting) {
             Mat = new THREE.MeshPhongMaterial( { color: color } );
         } else {
             Mat = new THREE.MeshBasicMaterial( { color: color } );
