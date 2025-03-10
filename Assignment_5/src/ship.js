@@ -212,12 +212,12 @@ class Ship {
         
         // Optional: Provide a DRACOLoader instance to decode compressed mesh data
         const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
+        //dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
         loader.setDRACOLoader( dracoLoader );
         // Load a glTF resource
         loader.load(
             // resource URL
-            './sidewinder_mk_i/scene.gltf',
+            './src/sidewinder_mk_i/scene.gltf',
             // called when the resource is loaded
             function ( gltf, ) {
                 gltf.scene.name = "ship";

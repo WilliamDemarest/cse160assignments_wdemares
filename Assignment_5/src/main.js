@@ -24,7 +24,7 @@ const ship = new Ship(scene);
 // scene.background = textureCube;
 var skyGeo = new THREE.SphereGeometry(500, 25, 25);
 var loader  = new THREE.TextureLoader(),
-        texture = loader.load( "./real_sky4.png" );
+        texture = loader.load( "./src/real_sky4.png" );
         var material = new THREE.MeshPhongMaterial({ 
           map: texture,
   });
@@ -132,7 +132,7 @@ pale_moon.mass = 1000;
 pale_moon.influ = 2;
 pale_moon.orbit(blue_planet, 7);
 
-const venus = new Planet(scene, 1, 0xff8800, true, 'venus_radar.jpg');
+const venus = new Planet(scene, 1, 0xff8800, true, './src/venus_radar.jpg');
 venus.mass = 1000000;
 venus.influ = 7;
 venus.orbit(sun, 15);
