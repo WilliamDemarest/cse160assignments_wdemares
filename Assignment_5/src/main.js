@@ -80,6 +80,11 @@ function rotate(event) {
 
 function keydown(ev){
   g_keyStates[ev.keyCode] = true;
+  if (ev.keyCode == 190) {
+    g_time.speed += 1;
+  } else if (ev.keyCode == 188 && g_time.speed > 0) {
+    g_time.speed -= 1;
+  }
 }
 function keyup(ev){
   g_keyStates[ev.keyCode] = false;
@@ -108,21 +113,36 @@ function keyup(ev){
 // }
 
 const gui = new GUI();
-gui.add(g_time, 'speed', 0, 100, 1);
+gui.add(g_time, 'speed', 0, 100, 1).listen();
 
 
 camera.position.z = 60;
 
 const sun = new Planet(scene, 2, 0xffff99, false, false);
 sun.mass = 100000000;
+sun.influ = 500;
 
-const planet1 = new Planet(scene, 1, 0x00aaaa)
-planet1.orbit(sun, 30);
-planet1.mass = 1000000;
+const blue_planet = new Planet(scene, 1, 0x00aaaa);
+blue_planet.mass = 1000000;
+blue_planet.influ = 10;
+blue_planet.orbit(sun, 37);
 
-const planet2 = new Planet(scene, 1, 0xff8800, true, 'venus_radar.jpg')
-planet2.orbit(sun, 15);
-console.log(planet2.tan_velocity);
+const pale_moon = new Planet(scene, 0.2, 0xaaffff);
+pale_moon.mass = 1000;
+pale_moon.influ = 2;
+pale_moon.orbit(blue_planet, 7);
+
+const venus = new Planet(scene, 1, 0xff8800, true, 'venus_radar.jpg');
+venus.mass = 1000000;
+venus.influ = 7;
+venus.orbit(sun, 15);
+
+const big_planet = new Planet(scene, 1.5, 0xff88ee);
+big_planet.mass = 10000000;
+big_planet.orbit(sun, 57);
+big_planet.influ = 10;
+big_planet.add_rings(scene, 2, 2.5, 0.05, 20, 0xaabfbb);
+//console.log(venus.tan_velocity);
 
 //const body1 = new Body(scene, 1, 0xff0000);
 //body1.orbit(sun, 15);
@@ -141,7 +161,7 @@ const light = new THREE.PointLight( 0xFFFFFF, 8000);
 light.position.set( 0, 0, 0 );
 scene.add( light );
 
-const ambient = new THREE.AmbientLight( 0xffffff, 0.01 ); // soft white light
+const ambient = new THREE.AmbientLight( 0xffffff, 0.02 ); // soft white light
 scene.add( ambient );
 
 //const helper = new THREE.PointLightHelper( light );
@@ -154,15 +174,14 @@ function animate() {
     ship.mesh.scale.set(0.01, 0.01, 0.01);
     ship.attatch_camera(camera);
     ship.init_details(scene);
-    ship.orbit(planet1, 3);
+    ship.orbit(blue_planet, 2);
 
     //console.log(ship.mesh);
   }
 	//cube.rotation.x += 0.01;
 	//cube.rotation.y += 0.01;
     //camera.rotateY(0.1);
-  planet1.orbit_tick(g_time.speed);
-  planet2.orbit_tick(g_time.speed);
+  sun.system_tick(g_time.speed);
   //body1.fall(g_time.speed);
 
   ship.move(g_keyStates);

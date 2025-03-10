@@ -39,7 +39,7 @@ class Ship {
         this.distance = distance;
 
         this.parent = parent;
-        this.velocity.z += Math.sqrt((G * this.parent.mass) / this.distance);
+        this.velocity.z -= Math.sqrt((G * this.parent.mass) / this.distance);
 
         //this.velocity.add(this.parent.velocity);
         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
@@ -166,6 +166,8 @@ class Ship {
         if (!this.mesh) {
             return;
         }
+        this.check_parent();
+
         const a = new THREE.Vector3(0, 0, 0);
         a.subVectors(this.parent.position, this.position);
 
@@ -199,9 +201,9 @@ class Ship {
         this.v_helper.position.setX(this.position.x);
         this.v_helper.position.setY(this.position.y);
         this.v_helper.position.setZ(this.position.z);
-        this.v_helper.setDirection(this.velocity);
+        this.v_helper.setDirection(this.velocity.clone());
         this.v_helper.setLength(mag(this.velocity)*50);
-        //console.log(this.v_helper);
+        //console.log(this.velocity);
     }
 
     load(scene){
@@ -280,6 +282,35 @@ class Ship {
         this.plumes = {"cones": [conel, coner]};
         console.log(this.plumes["cones"])
     }
+
+    check_parent() {
+        let r = distance(this.position, this.parent.position)
+        if (this.parent.influ < r) {
+            this.velocity.add(this.parent.velocity);
+            this.parent = this.parent.parent;
+            this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
+            //r = distance(this.position, this.parent.position);
+            //this.velocity.z += Math.sqrt((G * this.parent.mass) / r);
+
+            if (this.parent) {
+                this.check_parent()
+            } else {
+                return;
+            }
+        } else {
+            for (let i = 0; i < this.parent.children.length; i += 1) {
+                if (this.parent.children[i].influ > 0) {
+                    r = distance(this.position, this.parent.children[i].position);
+                    if (r < this.parent.children[i].influ) {
+                        this.parent = this.parent.children[i];
+                        this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
+                        this.velocity.sub(this.parent.velocity);
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }
 
 function mag(v) {
@@ -288,6 +319,12 @@ function mag(v) {
         Math.pow(v.y, 2) +
         Math.pow(v.z, 2) 
     );
+}
+
+function distance(v1, v2) {
+    const v = new THREE.Vector3(0, 0, 0);
+    v.subVectors(v2, v1);
+    return mag(v);
 }
 
 export default Ship;
