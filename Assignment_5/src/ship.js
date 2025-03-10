@@ -217,7 +217,7 @@ class Ship {
         // Load a glTF resource
         loader.load(
             // resource URL
-            './src/sidewinder_mk_i/scene.gltf',
+            './sidewinder_mk_i/scene.gltf',
             // called when the resource is loaded
             function ( gltf, ) {
                 gltf.scene.name = "ship";
