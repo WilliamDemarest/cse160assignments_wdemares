@@ -15,14 +15,25 @@
                 display:block;
                 color:yellow;
             }
+            #help {
+                position: absolute;
+                top: 40px;
+                width: 100%;
+                text-align: center;
+                z-index: 100;
+                display:block;
+                color:yellow;
+                font-size: 13px;
+            }
 		</style>
 	</head>
 	<body>
         <div id="info">
 			Periapsis: <a id="per_display">???</a>, 
             Apoapsis: <a id="ap_display">???</a>
-            Altitude: <a id="alt_display">???</a>
+            Altitude: <a id="alt_display">???</a> <br>
 		</div>
+        <div id="help">Press 'h' to show controlls</div>
         <div>
             <canvas id="canvas1"></canvas>
         </div>

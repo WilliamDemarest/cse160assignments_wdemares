@@ -54,6 +54,12 @@ canvas.addEventListener("mousemove", rotate);
 const per_display = document.getElementById("per_display");
 const ap_display = document.getElementById("ap_display");
 const alt_display = document.getElementById("alt_display");
+
+const help_display = document.getElementById("help");
+
+const help_text_show = "Press 'h' to hide controls. Click page for mouse control. Accelerate: 'w', Roll: 'q' 'e', Increase/decrease time speed: '<' '>', Throttle +/-: 'shift' 'ctrl <br> Toggle free move: 'p'";
+const help_text_hide = "Press 'h' to show key controlls";
+let show_controls = false;
 //document.addEventListener("scroll", (ev) => {console.log(ev);});
 
 //document.getElementById('warp').addEventListener('mousemove', function() {g_warp = parseInt(this.value);} )
@@ -86,10 +92,37 @@ function rotate(event) {
 
 function keydown(ev){
   g_keyStates[ev.keyCode] = true;
+  console.log(ev.keyCode);
   if (ev.keyCode == 190) {
     g_tool.speed += 1;
   } else if (ev.keyCode == 188 && g_tool.speed > 0) {
     g_tool.speed -= 1;
+  } else if (ev.keyCode == 72) {
+    if (show_controls) {
+      help_display.innerHTML = help_text_hide;
+      show_controls = false;
+    } else {
+      help_display.innerHTML = help_text_show;
+      show_controls = true;
+    }
+  } else if (ev.keyCode == 16) {
+    if (g_tool.throttle < 20) {
+      g_tool.throttle += 1;
+    }
+  } else if (ev.keyCode == 17) {
+    if (g_tool.throttle > 1) {
+      g_tool.throttle -= 1;
+    }
+  } else if (ev.keyCode == 80) {
+    if (ship.inertia) {
+      ship.inertia = false;
+    } else {
+      ship.check_parent();
+      const d = ship.parent.position.distanceTo(ship.position);
+      ship.orbit(ship.parent, d);
+      ship.inertia = true;
+      
+    }
   }
 }
 function keyup(ev){
@@ -183,8 +216,11 @@ function animate() {
     ship.attatch_camera(camera);
     ship.init_details(scene);
     ship.orbit(blue_planet, 2);
+    help_display.innerHTML = help_text_hide;
 
     //console.log(ship.mesh);
+  } else if (!ship.mesh) {
+    help_display.innerHTML = "Please wait while the ship model is loaded..."
   }
 	//cube.rotation.x += 0.01;
 	//cube.rotation.y += 0.01;

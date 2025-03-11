@@ -41,14 +41,14 @@ class Ship {
         this.distance = distance;
 
         this.parent = parent;
-        this.velocity.z -= Math.sqrt((G * this.parent.mass) / this.distance);
+        this.velocity.set( 0, 0, Math.sqrt((G * this.parent.mass) / this.distance)*-1);
 
         //this.velocity.add(this.parent.velocity);
         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
 
-        this.position.add(this.parent.position);
-        this.position.x -= distance;
-        this.set_pos(this.position.x, this.position.y, this.position.z);
+        //this.position.set(this.parent.position);
+        //this.position.x -= distance;
+        this.set_pos(this.parent.position.x - distance, this.parent.position.y, this.parent.position.z);
     }
 
     set_camera_pos() {
@@ -164,7 +164,7 @@ class Ship {
     }
 
     fall(warp=1) {
-        if (!this.mesh) {
+        if (!this.mesh || !this.inertia) {
             return;
         }
         this.check_parent();
@@ -373,7 +373,6 @@ class Ship {
         rad.normalize();
         const ev = new THREE.Vector3(0, 0, 0);
         ev.crossVectors(this.velocity, Lv);
-        console.log(Lv);
         ev.multiplyScalar(1 / u);
         ev.sub(rad);
         const e = mag(ev);
