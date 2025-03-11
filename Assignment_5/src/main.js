@@ -50,6 +50,10 @@ canvas.addEventListener("click", async () => {
 });
 
 canvas.addEventListener("mousemove", rotate);
+
+const per_display = document.getElementById("per_display");
+const ap_display = document.getElementById("ap_display");
+const alt_display = document.getElementById("alt_display");
 //document.addEventListener("scroll", (ev) => {console.log(ev);});
 
 //document.getElementById('warp').addEventListener('mousemove', function() {g_warp = parseInt(this.value);} )
@@ -61,12 +65,14 @@ canvas.addEventListener("mousemove", rotate);
 // const cube = new THREE.Mesh( geometry, material );
 // scene.add( cube );
 // camera.position.z = 5;
-class Time {
+class Tool {
   constructor(){
     this.speed = 1;
+    this.throttle = 10;
+    this.arrow_size = 1;
   }
 }
-let g_time = new Time();
+let g_tool = new Tool();
 
 
 function rotate(event) {
@@ -81,9 +87,9 @@ function rotate(event) {
 function keydown(ev){
   g_keyStates[ev.keyCode] = true;
   if (ev.keyCode == 190) {
-    g_time.speed += 1;
-  } else if (ev.keyCode == 188 && g_time.speed > 0) {
-    g_time.speed -= 1;
+    g_tool.speed += 1;
+  } else if (ev.keyCode == 188 && g_tool.speed > 0) {
+    g_tool.speed -= 1;
   }
 }
 function keyup(ev){
@@ -113,7 +119,9 @@ function keyup(ev){
 // }
 
 const gui = new GUI();
-gui.add(g_time, 'speed', 0, 100, 1).listen();
+gui.add(g_tool, 'speed', 0, 100, 1).listen();
+gui.add(g_tool, 'throttle', 1, 20, 1).listen();
+gui.add(g_tool, 'arrow_size', 0, 10, 1);
 
 
 camera.position.z = 60;
@@ -134,7 +142,7 @@ pale_moon.orbit(blue_planet, 7);
 
 const venus = new Planet(scene, 1, 0xff8800, true, './venus_radar.jpg');
 venus.mass = 1000000;
-venus.influ = 7;
+venus.influ = 10;
 venus.orbit(sun, 15);
 
 const big_planet = new Planet(scene, 1.5, 0xff88ee);
@@ -174,18 +182,24 @@ function animate() {
     ship.mesh.scale.set(0.01, 0.01, 0.01);
     ship.attatch_camera(camera);
     ship.init_details(scene);
-    ship.orbit(big_planet, 2);
+    ship.orbit(blue_planet, 2);
 
     //console.log(ship.mesh);
   }
 	//cube.rotation.x += 0.01;
 	//cube.rotation.y += 0.01;
     //camera.rotateY(0.1);
-  sun.system_tick(g_time.speed);
-  //body1.fall(g_time.speed);
+  sun.system_tick(g_tool.speed);
+  //body1.fall(g_tool.speed);
 
   ship.move(g_keyStates);
-  ship.fall(g_time.speed)
+  ship.ap_and_per()
+  ship.fall(g_tool.speed)
+  ship.throttle = g_tool.throttle;
+  ship.arrow_size = g_tool.arrow_size;
+  per_display.innerHTML = (ship.per).toFixed(2);
+  ap_display.innerHTML = (ship.apo).toFixed(2);
+  alt_display.innerHTML = (ship.alt).toFixed(2);
 	renderer.render( scene, camera );
 
 }

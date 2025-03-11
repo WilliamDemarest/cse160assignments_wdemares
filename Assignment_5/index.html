@@ -6,9 +6,23 @@
 		<title>Sneed Dangerous</title>
 		<style>
 			body { margin: 0; }
+            #info {
+                position: absolute;
+                top: 20px;
+                width: 100%;
+                text-align: center;
+                z-index: 100;
+                display:block;
+                color:yellow;
+            }
 		</style>
 	</head>
 	<body>
+        <div id="info">
+			Periapsis: <a id="per_display">???</a>, 
+            Apoapsis: <a id="ap_display">???</a>
+            Altitude: <a id="alt_display">???</a>
+		</div>
         <div>
             <canvas id="canvas1"></canvas>
         </div>

@@ -13,6 +13,8 @@ class Ship {
 
         this.old_parent_pos = new THREE.Vector3(0, 0, 0);
         this.inertia = true;
+        this.throttle = 10;
+        this.arrow_size = 1;
 
         this.zoom = 1;
         // const Geo = new THREE.SphereGeometry( size, 32, 16); 
@@ -116,11 +118,10 @@ class Ship {
         }
         const speed = -0.1;
         if (this.inertia) {
-            const throttle = 0.0001;
             if (key_array[87]) { "W"
                 const forwards = new THREE.Vector3(0, 0, 1);
                 forwards.applyQuaternion(this.mesh.quaternion);
-                forwards.multiplyScalar(throttle);
+                forwards.multiplyScalar(this.throttle*0.00001);
                 this.velocity.add(forwards);
                 this.plumes["cones"][0].visible = true;
                 this.plumes["cones"][1].visible = true;
@@ -202,7 +203,7 @@ class Ship {
         this.v_helper.position.setY(this.position.y);
         this.v_helper.position.setZ(this.position.z);
         this.v_helper.setDirection(this.velocity.clone());
-        this.v_helper.setLength(mag(this.velocity)*50);
+        this.v_helper.setLength(mag(this.velocity)*50*this.arrow_size);
         //console.log(this.velocity);
     }
 
@@ -280,7 +281,7 @@ class Ship {
         this.mesh.add( coner );
         
         this.plumes = {"cones": [conel, coner]};
-        console.log(this.plumes["cones"])
+        //console.log(this.plumes["cones"])
     }
 
     check_parent() {
@@ -301,7 +302,7 @@ class Ship {
             for (let i = 0; i < this.parent.children.length; i += 1) {
                 if (this.parent.children[i].influ > 0) {
                     r = distance(this.position, this.parent.children[i].position);
-                    if (r < this.parent.children[i].influ) {
+                    if (r - 0.1 < this.parent.children[i].influ) {
                         this.parent = this.parent.children[i];
                         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
                         this.velocity.sub(this.parent.velocity);
@@ -310,6 +311,59 @@ class Ship {
                 }
             }
         }
+    }
+
+    ap_and_per() {
+        if (!this.mesh) {
+            this.apo = 0;
+            this.per = 0;
+            this.alt = 0;
+            return;
+        }
+        const rad = new THREE.Vector3(
+            this.parent.position.x - this.position.x,
+            this.parent.position.y - this.position.y,
+            this.parent.position.z - this.position.z,
+        );
+
+        const r = mag(rad);
+        this.alt = r;
+
+        const h = new THREE.Vector3(0, 0, 0);
+        h.crossVectors(rad, this.velocity);
+        const u = G * this.parent.mass;
+
+        // const e_vec = new THREE.Vector3(0, 0, 0);
+        // e_vec.crossVectors(this.velocity, h);
+        // e_vec.divideScalar(u)
+        // e_vec.sub(rad.normalize());
+
+        // const e = mag(e_vec);
+
+
+
+        // norm.normalize();
+        const vt = new THREE.Vector3(0, 0, 0);
+        vt.crossVectors(rad, this.velocity);
+        rad.multiplyScalar(-1);
+        vt.crossVectors(rad, vt);
+        const v = mag(vt);
+
+        const a = -((u * r) / ((r * Math.pow(v, 2)) - (2 * u)));
+        const E = -(u / (2*a));
+        const L = v; // idk about this one
+        // TODO, links:
+        // https://en.wikipedia.org/wiki/Orbital_eccentricity
+        // https://physics.stackexchange.com/questions/72203/calculating-specific-orbital-energy-semi-major-axis-and-orbital-period-of-an-o
+        // https://www.omnicalculator.com/physics/orbital-velocity
+        // https://astronomy.stackexchange.com/questions/29005/calculation-of-eccentricity-of-orbit-from-velocity-and-radius
+        // try last one
+
+        //const e = Math.sqrt(1 + ((2 * E * Math.pow(L,2)) / ))
+        const b = a * Math.sqrt(1 - Math.pow(e, 2));
+
+        this.apo = a * (1 + e);
+        this.per = a * (1 - e);
     }
 }
 
