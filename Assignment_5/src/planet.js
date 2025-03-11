@@ -84,7 +84,7 @@ class Planet {
             const particle = new Planet(scene, p_size, p_color, true, false, true);
             particle.orbit(this, (Math.random() * width)+r1);
             particle.orbit_pos = Math.random() * 2 * Math.PI;
-            this.children.push(particle);
+            //this.children.push(particle);
         }
     }
     

@@ -1,13 +1,12 @@
 {
   "name": "sneed_dangerous",
   "version": "0.0.1",
-  "homepage": "https://williamdemarest.github.io/cse160assignments_wdemares/Assignment_5/",
   "dependencies": {
     "three": "^0.174.0"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --base=./",
     "preview": "vite preview"
   },
   "devDependencies": {

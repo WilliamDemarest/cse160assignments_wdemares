@@ -174,7 +174,7 @@ function animate() {
     ship.mesh.scale.set(0.01, 0.01, 0.01);
     ship.attatch_camera(camera);
     ship.init_details(scene);
-    ship.orbit(blue_planet, 2);
+    ship.orbit(big_planet, 2);
 
     //console.log(ship.mesh);
   }
