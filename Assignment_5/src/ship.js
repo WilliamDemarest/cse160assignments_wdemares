@@ -202,9 +202,10 @@ class Ship {
         this.v_helper.position.setX(this.position.x);
         this.v_helper.position.setY(this.position.y);
         this.v_helper.position.setZ(this.position.z);
-        this.v_helper.setDirection(this.velocity.clone());
+        this.v_helper.setDirection(this.velocity.clone().normalize());
         this.v_helper.setLength(mag(this.velocity)*50*this.arrow_size);
         //console.log(this.velocity);
+        //console.log(this.parent.orbit_pos);
     }
 
     load(scene){
@@ -287,7 +288,12 @@ class Ship {
     check_parent() {
         let r = distance(this.position, this.parent.position)
         if (this.parent.influ < r) {
-            this.velocity.add(this.parent.velocity);
+            const up = new THREE.Vector3(0, 1, 0);
+            const pv = this.parent.velocity.clone();
+            pv.applyAxisAngle(up, (this.parent.orbit_pos % (2 * Math.PI)*-1));
+            //pv.multiplyScalar(-1);
+            this.velocity.add(pv);
+            //console.log(this.parent.orbit_pos);
             this.parent = this.parent.parent;
             this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
             //r = distance(this.position, this.parent.position);
@@ -302,10 +308,14 @@ class Ship {
             for (let i = 0; i < this.parent.children.length; i += 1) {
                 if (this.parent.children[i].influ > 0) {
                     r = distance(this.position, this.parent.children[i].position);
-                    if (r - 0.1 < this.parent.children[i].influ) {
+                    if (r < this.parent.children[i].influ) {
                         this.parent = this.parent.children[i];
                         this.old_parent_pos.set(this.parent.position.x, this.parent.position.y, this.parent.position.z);
-                        this.velocity.sub(this.parent.velocity);
+                        
+                        const up = new THREE.Vector3(0, 1, 0);
+                        const pv = this.parent.velocity.clone();
+                        pv.applyAxisAngle(up, (this.parent.orbit_pos % (2 * Math.PI)*-1));
+                        this.velocity.sub(pv);
                         return;
                     }
                 }
@@ -343,26 +353,35 @@ class Ship {
 
 
         // norm.normalize();
-        const vt = new THREE.Vector3(0, 0, 0);
-        vt.crossVectors(rad, this.velocity);
-        rad.multiplyScalar(-1);
-        vt.crossVectors(rad, vt);
-        const v = mag(vt);
+        // const vt = new THREE.Vector3(0, 0, 0);
+        // vt.crossVectors(rad, this.velocity);
+        // rad.multiplyScalar(-1);
+        // vt.crossVectors(rad, vt);
+        const v = mag(this.velocity);
 
         const a = -((u * r) / ((r * Math.pow(v, 2)) - (2 * u)));
-        const E = -(u / (2*a));
-        const L = v; // idk about this one
+        //const E = -(u / (2*a));
+        //const L = v; // idk about this one
         // TODO, links:
         // https://en.wikipedia.org/wiki/Orbital_eccentricity
         // https://physics.stackexchange.com/questions/72203/calculating-specific-orbital-energy-semi-major-axis-and-orbital-period-of-an-o
         // https://www.omnicalculator.com/physics/orbital-velocity
         // https://astronomy.stackexchange.com/questions/29005/calculation-of-eccentricity-of-orbit-from-velocity-and-radius
         // try last one
-
+        const Lv = new THREE.Vector3(0, 0, 0);
+        Lv.crossVectors(rad, this.velocity);
+        rad.normalize();
+        const ev = new THREE.Vector3(0, 0, 0);
+        ev.crossVectors(this.velocity, Lv);
+        console.log(Lv);
+        ev.multiplyScalar(1 / u);
+        ev.sub(rad);
+        const e = mag(ev);
         //const e = Math.sqrt(1 + ((2 * E * Math.pow(L,2)) / ))
-        const b = a * Math.sqrt(1 - Math.pow(e, 2));
+        //const b = a * Math.sqrt(1 - Math.pow(e, 2));
 
         this.apo = a * (1 + e);
+        //this.apo = e;
         this.per = a * (1 - e);
     }
 }
@@ -380,5 +399,21 @@ function distance(v1, v2) {
     v.subVectors(v2, v1);
     return mag(v);
 }
+
+function set_arow_d(arrow, dir_v) {
+    const dir = dir_v.clone();
+
+    if (dir.y > 0.99999) {
+      arrow.quaternion.set(0, 0, 0, 1);
+  
+    } else if (dir.y < - 0.99999) {
+      arrow.quaternion.set(1, 0, 0, 0);
+  
+    } else {
+      _axis.set(dir.z, 0, - dir.x).normalize();
+      const radians = Math.acos(dir.y);
+      arrow.quaternion.setFromAxisAngle(_axis, radians);
+    }
+  }
 
 export default Ship;
