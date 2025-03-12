@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        <link rel="shortcut icon" href="#"/>
+		<meta charset="utf-8">
+		<title>Sneed Dangerous</title>
+		<style>
+			body { margin: 0; }
+            #info {
+                position: absolute;
+                top: 20px;
+                width: 100%;
+                text-align: center;
+                z-index: 100;
+                display:block;
+                color:yellow;
+            }
+            #help {
+                position: absolute;
+                top: 40px;
+                width: 100%;
+                text-align: center;
+                z-index: 100;
+                display:block;
+                color:yellow;
+                font-size: 13px;
+            }
+		</style>
+		<script type="module" crossorigin src="./assets/index-HFuxNLrT.js"></script>
+	</head>
+	<body>
+        <div id="info">
+			Periapsis: <a id="per_display">???</a>, 
+            Apoapsis: <a id="ap_display">???</a>
+            Altitude: <a id="alt_display">???</a> <br>
+		</div>
+        <div id="help">Press 'h' to show controlls</div>
+        <div>
+            <canvas id="canvas1"></canvas>
+        </div>
+	</body>
+</html>
