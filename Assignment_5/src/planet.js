@@ -31,6 +31,8 @@ class Planet {
         }
         this.sphere = new THREE.Mesh( Geo, Mat );
         this.sphere.position.set( 0, 0, 0 );
+        this.sphere.castShadow = !is_ring;
+        this.sphere.receiveShadow = true;
         scene.add(this.sphere);
     }
 

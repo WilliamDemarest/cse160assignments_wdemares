@@ -36,6 +36,8 @@ var sky = new THREE.Mesh(skyGeo, material);
 //const camera = new THREE.PerspectiveCamera( 75, 700 / 700, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
 renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 //renderer.setSize( 700, 700 );
 renderer.setAnimationLoop( animate );
 document.body.appendChild( renderer.domElement );
@@ -162,6 +164,8 @@ camera.position.z = 60;
 const sun = new Planet(scene, 2, 0xffff99, false, false);
 sun.mass = 100000000;
 sun.influ = 500;
+sun.sphere.castShadow = false;
+sun.sphere.receiveShadow = false;
 
 const blue_planet = new Planet(scene, 1, 0x00aaaa);
 blue_planet.mass = 1000000;
@@ -171,6 +175,7 @@ blue_planet.orbit(sun, 37);
 const pale_moon = new Planet(scene, 0.2, 0xaaffff);
 pale_moon.mass = 1000;
 pale_moon.influ = 2;
+pale_moon.orbit_pos = -Math.PI / 4;
 pale_moon.orbit(blue_planet, 7);
 
 const venus = new Planet(scene, 1, 0xff8800, true, './venus_radar.jpg');
@@ -182,7 +187,7 @@ const big_planet = new Planet(scene, 1.5, 0xff88ee);
 big_planet.mass = 10000000;
 big_planet.orbit(sun, 57);
 big_planet.influ = 10;
-big_planet.add_rings(scene, 2, 2.5, 0.05, 20, 0xaabfbb);
+big_planet.add_rings(scene, 2.5, 3, 0.05, 40, 0xaabfbb);
 //console.log(venus.tan_velocity);
 
 //const body1 = new Body(scene, 1, 0xff0000);
@@ -200,6 +205,15 @@ big_planet.add_rings(scene, 2, 2.5, 0.05, 20, 0xaabfbb);
 
 const light = new THREE.PointLight( 0xFFFFFF, 8000);
 light.position.set( 0, 0, 0 );
+light.castShadow = true;
+light.shadow.mapSize.width = 4096;
+light.shadow.mapSize.height = 4096;
+light.distance = 499;
+light.shadow.normalBias = 0.01;
+light.shadow.bias = -0.0001
+light.shadow.radius = 5;
+light.decay = 2;
+//light.shadow.bias = 0.0001;
 scene.add( light );
 
 const ambient = new THREE.AmbientLight( 0xffffff, 0.02 ); // soft white light
@@ -213,6 +227,7 @@ function animate() {
   if(!ship.mesh && scene.getObjectByName("ship")){
     ship.mesh = scene.getObjectByName("ship");
     ship.mesh.scale.set(0.01, 0.01, 0.01);
+    //ship.mesh.receiveShadow = true;
     ship.attatch_camera(camera);
     ship.init_details(scene);
     ship.orbit(blue_planet, 2);

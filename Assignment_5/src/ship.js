@@ -27,7 +27,7 @@ class Ship {
         // this.mesh = new THREE.Mesh( Geo, Mat );
         this.mesh;
         this.load(scene);
-        console.log(this.mesh)
+        //console.log(this.mesh)
         //this.mesh.position.set( 0, 0, 0 );
         //scene.add(this.mesh);
     }
